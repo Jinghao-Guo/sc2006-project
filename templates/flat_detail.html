@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}{{ flat.block }} {{ flat.street_name }} - HDB Search Singapore{% endblock %}
+
+{% block content %}
+<div class="flat-detail-header mb-4">
+    <div class="row">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="javascript:history.back()">Search Results</a></li>
+                    <li class="breadcrumb-item active">Flat Details</li>
+                </ol>
+            </nav>
+            
+            <h1 class="mb-1">Block {{ flat.block }}, {{ flat.street_name }}</h1>
+            <p class="text-muted h5">{{ flat.town }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <button onclick="history.back()" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Results
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Details -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-home"></i> Property Details</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Flat Type:</label>
+                            <span class="badge bg-primary fs-6 ms-2">{{ flat.flat_type }}</span>
+                        </div>
+                        
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Floor Area:</label>
+                            <span class="ms-2">{{ flat.floor_area_sqm }} m²</span>
+                        </div>
+                        
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Storey Range:</label>
+                            <span class="ms-2">{{ flat.storey_range }}</span>
+                        </div>
+                        
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Flat Model:</label>
+                            <span class="ms-2">{{ flat.flat_model or 'Not specified' }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Lease Commence Date:</label>
+                            <span class="ms-2">{{ flat.lease_commence_date or 'Not available' }}</span>
+                        </div>
+                        
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Remaining Lease:</label>
+                            <span class="ms-2">{{ flat.remaining_lease or 'Not available' }}</span>
+                        </div>
+                        
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Sale Month:</label>
+                            <span class="ms-2">{{ flat.month or 'Not available' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Additional Information -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Additional Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Location Benefits</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Well-connected to public transport</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Near amenities and shopping centers</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Established neighborhood</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Property Features</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>HDB approved renovation allowed</li>
+                            <li><i class="fas fa-check text-success me-2"></i>CPF eligible</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Bank loan available</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Price and Action Panel -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4 sticky-top" style="top: 20px;">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0">Resale Price</h4>
+            </div>
+            <div class="card-body text-center">
+                <h2 class="text-success mb-3">${{ "{:,.0f}".format(flat.resale_price) }}</h2>
+                <p class="text-muted mb-3">${{ "{:,.0f}".format(flat.resale_price / flat.floor_area_sqm) }} per m²</p>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success btn-lg" onclick="showInterestModal()">
+                        <i class="fas fa-heart"></i> Show Interest
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="shareProperty()">
+                        <i class="fas fa-share"></i> Share Property
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="printDetails()">
+                        <i class="fas fa-print"></i> Print Details
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-chart-bar"></i> Quick Stats</h6>
+            </div>
+            <div class="card-body">
+                <div class="stat-item d-flex justify-content-between mb-2">
+                    <span>Property Age:</span>
+                    <strong>{{ 2024 - flat.lease_commence_date if flat.lease_commence_date else 'N/A' }} years</strong>
+                </div>
+                <div class="stat-item d-flex justify-content-between mb-2">
+                    <span>Floor Area:</span>
+                    <strong>{{ flat.floor_area_sqm }} m²</strong>
+                </div>
+                <div class="stat-item d-flex justify-content-between mb-2">
+                    <span>Price per m²:</span>
+                    <strong>${{ "{:,.0f}".format(flat.resale_price / flat.floor_area_sqm) }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interest Modal -->
+<div class="modal fade" id="interestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Show Interest</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>This is a demo website. In a real application, this would connect you with property agents or the HDB resale platform.</p>
+                <div class="alert alert-info">
+                    <strong>Property:</strong> Block {{ flat.block }}, {{ flat.street_name }}<br>
+                    <strong>Price:</strong> ${{ "{:,.0f}".format(flat.resale_price) }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Contact Agent</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showInterestModal() {
+    var modal = new bootstrap.Modal(document.getElementById('interestModal'));
+    modal.show();
+}
+
+function shareProperty() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'HDB Flat - Block {{ flat.block }}, {{ flat.street_name }}',
+            text: '{{ flat.flat_type }} HDB flat in {{ flat.town }} for ${{ "{:,.0f}".format(flat.resale_price) }}',
+            url: window.location.href
+        });
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(window.location.href).then(function() {
+            alert('Link copied to clipboard!');
+        });
+    }
+}
+
+function printDetails() {
+    window.print();
+}
+</script>
+{% endblock %}

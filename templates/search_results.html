@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - HDB Search Singapore{% endblock %}
+
+{% block content %}
+<div class="search-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h2><i class="fas fa-search-location text-primary"></i> Search Results</h2>
+            <p class="text-muted">
+                Found {{ flats|length }} flats
+                {% if query %} for "{{ query }}"{% endif %}
+                {% if town %} in {{ town }}{% endif %}
+                {% if flat_type %} - {{ flat_type }}{% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> New Search
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if flats %}
+<div class="results-grid">
+    {% for flat in flats %}
+    <div class="card mb-3 shadow-sm hover-card">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="card-title mb-1">
+                        <a href="{{ url_for('flat_detail', flat_id=flat.id) }}" class="text-decoration-none">
+                            Block {{ flat.block }}, {{ flat.street_name }}
+                        </a>
+                    </h5>
+                    <p class="text-muted mb-2">{{ flat.town }}</p>
+                    
+                    <div class="flat-details">
+                        <span class="badge bg-primary me-2">{{ flat.flat_type }}</span>
+                        <span class="badge bg-info me-2">{{ flat.floor_area_sqm }}m²</span>
+                        <span class="badge bg-secondary me-2">{{ flat.storey_range }}</span>
+                        {% if flat.remaining_lease %}
+                        <span class="badge bg-warning text-dark">{{ flat.remaining_lease }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if flat.flat_model %}
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="fas fa-building"></i> {{ flat.flat_model }}
+                        {% if flat.lease_commence_date %}
+                        | Built in {{ flat.lease_commence_date }}
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-4 text-end">
+                    <div class="price-section">
+                        <h4 class="text-success mb-1">
+                            ${{ "{:,.0f}".format(flat.resale_price) }}
+                        </h4>
+                        <p class="text-muted small mb-2">
+                            ${{ "{:,.0f}".format(flat.resale_price / flat.floor_area_sqm) }}/m²
+                        </p>
+                        <a href="{{ url_for('flat_detail', flat_id=flat.id) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if flats|length == 50 %}
+<div class="alert alert-info mt-4">
+    <i class="fas fa-info-circle"></i>
+    Showing the first 50 results. Try refining your search for more specific results.
+</div>
+{% endif %}
+
+{% else %}
+<div class="no-results text-center py-5">
+    <i class="fas fa-search fa-4x text-muted mb-3"></i>
+    <h3 class="text-muted">No HDB flats found</h3>
+    <p class="text-muted mb-4">
+        {% if query or town or flat_type %}
+        Try adjusting your search criteria or 
+        {% endif %}
+        make sure the database is populated with data.
+    </p>
+    <div>
+        <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+            <i class="fas fa-search"></i> Try Another Search
+        </a>
+        <a href="{{ url_for('populate_data') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-database"></i> Populate Sample Data
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add hover effect for cards
+document.querySelectorAll('.hover-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+        this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = '';
+    });
+});
+</script>
+{% endblock %}

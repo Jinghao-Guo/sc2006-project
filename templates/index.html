@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}HDB Search Singapore - Find Your Dream HDB Flat{% endblock %}
+
+{% block content %}
+<div class="hero-section bg-light p-5 rounded mb-4">
+    <div class="row align-items-center">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold text-primary">Find Your Dream HDB Flat</h1>
+            <p class="lead">Search through thousands of HDB resale flats in Singapore. Find the perfect home for you and your family.</p>
+        </div>
+        <div class="col-lg-6">
+            <img src="https://via.placeholder.com/500x300/0066cc/ffffff?text=HDB+Building" class="img-fluid rounded" alt="HDB Building">
+        </div>
+    </div>
+</div>
+
+<div class="search-section">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <h3 class="card-title mb-4"><i class="fas fa-search text-primary"></i> Search HDB Flats</h3>
+            
+            <form action="{{ url_for('search') }}" method="GET" class="search-form">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="search-input" class="form-label">Search by Town, Street, or Block</label>
+                        <div class="position-relative">
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="search-input" 
+                                   name="q" 
+                                   placeholder="e.g., Ang Mo Kio, Bedok North St 3, Block 221"
+                                   autocomplete="off">
+                            <div id="search-suggestions" class="search-suggestions"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="town-select" class="form-label">Town</label>
+                        <select class="form-select form-select-lg" id="town-select" name="town">
+                            <option value="">All Towns</option>
+                            <option value="ANG MO KIO">Ang Mo Kio</option>
+                            <option value="BEDOK">Bedok</option>
+                            <option value="BISHAN">Bishan</option>
+                            <option value="CLEMENTI">Clementi</option>
+                            <option value="JURONG WEST">Jurong West</option>
+                            <option value="TAMPINES">Tampines</option>
+                            <option value="HOUGANG">Hougang</option>
+                            <option value="WOODLANDS">Woodlands</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="flat-type-select" class="form-label">Flat Type</label>
+                        <select class="form-select form-select-lg" id="flat-type-select" name="flat_type">
+                            <option value="">All Types</option>
+                            <option value="2 ROOM">2 Room</option>
+                            <option value="3 ROOM">3 Room</option>
+                            <option value="4 ROOM">4 Room</option>
+                            <option value="5 ROOM">5 Room</option>
+                            <option value="EXECUTIVE">Executive</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary btn-lg me-2">
+                            <i class="fas fa-search"></i> Search Flats
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-lg" onclick="clearForm()">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="features-section mt-5">
+    <h3 class="text-center mb-4">Why Choose Our HDB Search?</h3>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Comprehensive Database</h5>
+                    <p class="card-text">Access thousands of HDB resale listings with up-to-date information.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Smart Search</h5>
+                    <p class="card-text">Find flats by location, price range, and specific requirements.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Market Insights</h5>
+                    <p class="card-text">Get detailed information about prices, trends, and neighborhood data.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function clearForm() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('town-select').value = '';
+    document.getElementById('flat-type-select').value = '';
+}
+</script>
+{% endblock %}
