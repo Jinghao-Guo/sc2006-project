@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Flats - {{ flat1.block }} {{ flat1.street_name }} vs {{ flat2.block }} {{ flat2.street_name }}{% endblock %}
+
+{% block content %}
+<div class="comparison-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h2><i class="fas fa-balance-scale text-primary"></i> Flat Comparison</h2>
+            <p class="text-muted">Side-by-side comparison of your selected properties</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('comparison') }}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-exchange-alt"></i> Compare Others
+            </a>
+            <a href="{{ url_for('favorites') }}" class="btn btn-outline-primary">
+                <i class="fas fa-heart"></i> My Favorites
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Flats Overview -->
+<div class="comparison-overview mb-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card border-primary h-100">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5 class="mb-0">Property A</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h4>Block {{ flat1.block }}, {{ flat1.street_name }}</h4>
+                    <p class="text-muted">{{ flat1.town }}</p>
+                    <h3 class="text-success">${{ "{:,.0f}".format(flat1.resale_price) }}</h3>
+                    {% if has_preferences and flat1_score > 0 %}
+                    <div class="compatibility-score mt-3">
+                        <span class="badge bg-{% if flat1_score >= 80 %}success{% elif flat1_score >= 60 %}warning{% elif flat1_score >= 40 %}info{% else %}secondary{% endif %} fs-6">
+                            <i class="fas fa-heart"></i> {{ flat1_score }}% Match
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-success h-100">
+                <div class="card-header bg-success text-white text-center">
+                    <h5 class="mb-0">Property B</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h4>Block {{ flat2.block }}, {{ flat2.street_name }}</h4>
+                    <p class="text-muted">{{ flat2.town }}</p>
+                    <h3 class="text-success">${{ "{:,.0f}".format(flat2.resale_price) }}</h3>
+                    {% if has_preferences and flat2_score > 0 %}
+                    <div class="compatibility-score mt-3">
+                        <span class="badge bg-{% if flat2_score >= 80 %}success{% elif flat2_score >= 60 %}warning{% elif flat2_score >= 40 %}info{% else %}secondary{% endif %} fs-6">
+                            <i class="fas fa-heart"></i> {{ flat2_score }}% Match
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Comparison Table -->
+<div class="comparison-details">
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h4 class="mb-0"><i class="fas fa-list-ul"></i> Detailed Comparison</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover comparison-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="25%">Feature</th>
+                            <th width="37.5%" class="text-center border-primary">
+                                <span class="text-primary">Property A</span><br>
+                                <small class="text-muted">{{ flat1.block }} {{ flat1.street_name }}</small>
+                            </th>
+                            <th width="37.5%" class="text-center border-success">
+                                <span class="text-success">Property B</span><br>
+                                <small class="text-muted">{{ flat2.block }} {{ flat2.street_name }}</small>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Basic Information -->
+                        <tr class="table-section-header">
+                            <td colspan="3" class="bg-light"><strong><i class="fas fa-home"></i> Basic Information</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Flat Type</strong></td>
+                            <td class="text-center">
+                                <span class="badge bg-primary">{{ flat1.flat_type }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-success">{{ flat2.flat_type }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Floor Area</strong></td>
+                            <td class="text-center{% if flat1.floor_area_sqm > flat2.floor_area_sqm %} table-success{% elif flat1.floor_area_sqm < flat2.floor_area_sqm %} table-warning{% endif %}">
+                                {{ flat1.floor_area_sqm }} m²
+                                {% if flat1.floor_area_sqm > flat2.floor_area_sqm %}<i class="fas fa-arrow-up text-success ms-1"></i>{% endif %}
+                            </td>
+                            <td class="text-center{% if flat2.floor_area_sqm > flat1.floor_area_sqm %} table-success{% elif flat2.floor_area_sqm < flat1.floor_area_sqm %} table-warning{% endif %}">
+                                {{ flat2.floor_area_sqm }} m²
+                                {% if flat2.floor_area_sqm > flat1.floor_area_sqm %}<i class="fas fa-arrow-up text-success ms-1"></i>{% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Storey Range</strong></td>
+                            <td class="text-center">{{ flat1.storey_range }}</td>
+                            <td class="text-center">{{ flat2.storey_range }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Flat Model</strong></td>
+                            <td class="text-center">{{ flat1.flat_model or 'Not specified' }}</td>
+                            <td class="text-center">{{ flat2.flat_model or 'Not specified' }}</td>
+                        </tr>
+                        
+                        <!-- Location -->
+                        <tr class="table-section-header">
+                            <td colspan="3" class="bg-light"><strong><i class="fas fa-map-marker-alt"></i> Location</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Town</strong></td>
+                            <td class="text-center">{{ flat1.town }}</td>
+                            <td class="text-center">{{ flat2.town }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Street</strong></td>
+                            <td class="text-center">{{ flat1.street_name }}</td>
+                            <td class="text-center">{{ flat2.street_name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Block</strong></td>
+                            <td class="text-center">{{ flat1.block }}</td>
+                            <td class="text-center">{{ flat2.block }}</td>
+                        </tr>
+                        
+                        <!-- Financial Information -->
+                        <tr class="table-section-header">
+                            <td colspan="3" class="bg-light"><strong><i class="fas fa-dollar-sign"></i> Financial Information</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Resale Price</strong></td>
+                            <td class="text-center{% if flat1.resale_price < flat2.resale_price %} table-success{% elif flat1.resale_price > flat2.resale_price %} table-warning{% endif %}">
+                                <strong>${{ "{:,.0f}".format(flat1.resale_price) }}</strong>
+                                {% if flat1.resale_price < flat2.resale_price %}<i class="fas fa-arrow-down text-success ms-1" title="Lower price"></i>{% endif %}
+                            </td>
+                            <td class="text-center{% if flat2.resale_price < flat1.resale_price %} table-success{% elif flat2.resale_price > flat1.resale_price %} table-warning{% endif %}">
+                                <strong>${{ "{:,.0f}".format(flat2.resale_price) }}</strong>
+                                {% if flat2.resale_price < flat1.resale_price %}<i class="fas fa-arrow-down text-success ms-1" title="Lower price"></i>{% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Price per m²</strong></td>
+                            <td class="text-center{% if (flat1.resale_price / flat1.floor_area_sqm) < (flat2.resale_price / flat2.floor_area_sqm) %} table-success{% elif (flat1.resale_price / flat1.floor_area_sqm) > (flat2.resale_price / flat2.floor_area_sqm) %} table-warning{% endif %}">
+                                ${{ "{:,.0f}".format(flat1.resale_price / flat1.floor_area_sqm) }}/m²
+                                {% if (flat1.resale_price / flat1.floor_area_sqm) < (flat2.resale_price / flat2.floor_area_sqm) %}<i class="fas fa-arrow-down text-success ms-1"></i>{% endif %}
+                            </td>
+                            <td class="text-center{% if (flat2.resale_price / flat2.floor_area_sqm) < (flat1.resale_price / flat1.floor_area_sqm) %} table-success{% elif (flat2.resale_price / flat2.floor_area_sqm) > (flat1.resale_price / flat1.floor_area_sqm) %} table-warning{% endif %}">
+                                ${{ "{:,.0f}".format(flat2.resale_price / flat2.floor_area_sqm) }}/m²
+                                {% if (flat2.resale_price / flat2.floor_area_sqm) < (flat1.resale_price / flat1.floor_area_sqm) %}<i class="fas fa-arrow-down text-success ms-1"></i>{% endif %}
+                            </td>
+                        </tr>
+                        
+                        <!-- Property Age -->
+                        <tr class="table-section-header">
+                            <td colspan="3" class="bg-light"><strong><i class="fas fa-calendar-alt"></i> Property Age</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Lease Commence Date</strong></td>
+                            <td class="text-center">{{ flat1.lease_commence_date or 'Not available' }}</td>
+                            <td class="text-center">{{ flat2.lease_commence_date or 'Not available' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Property Age</strong></td>
+                            <td class="text-center{% if flat1.lease_commence_date and flat2.lease_commence_date and flat1.lease_commence_date > flat2.lease_commence_date %} table-success{% elif flat1.lease_commence_date and flat2.lease_commence_date and flat1.lease_commence_date < flat2.lease_commence_date %} table-warning{% endif %}">
+                                {% if flat1.lease_commence_date %}
+                                    {{ 2024 - flat1.lease_commence_date }} years
+                                    {% if flat1.lease_commence_date and flat2.lease_commence_date and flat1.lease_commence_date > flat2.lease_commence_date %}<i class="fas fa-star text-success ms-1" title="Newer"></i>{% endif %}
+                                {% else %}
+                                    Not available
+                                {% endif %}
+                            </td>
+                            <td class="text-center{% if flat2.lease_commence_date and flat1.lease_commence_date and flat2.lease_commence_date > flat1.lease_commence_date %} table-success{% elif flat2.lease_commence_date and flat1.lease_commence_date and flat2.lease_commence_date < flat1.lease_commence_date %} table-warning{% endif %}">
+                                {% if flat2.lease_commence_date %}
+                                    {{ 2024 - flat2.lease_commence_date }} years
+                                    {% if flat2.lease_commence_date and flat1.lease_commence_date and flat2.lease_commence_date > flat1.lease_commence_date %}<i class="fas fa-star text-success ms-1" title="Newer"></i>{% endif %}
+                                {% else %}
+                                    Not available
+                                {% endif %}
+                            </td>
+                        </tr>
+                        
+                        <!-- Compatibility Score -->
+                        {% if has_preferences %}
+                        <tr class="table-section-header">
+                            <td colspan="3" class="bg-light"><strong><i class="fas fa-heart"></i> Preference Compatibility</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Overall Match Score</strong></td>
+                            <td class="text-center{% if flat1_score > flat2_score %} table-success{% elif flat1_score < flat2_score %} table-warning{% endif %}">
+                                <span class="badge bg-{% if flat1_score >= 80 %}success{% elif flat1_score >= 60 %}warning{% elif flat1_score >= 40 %}info{% else %}secondary{% endif %} fs-6">
+                                    {{ flat1_score }}%
+                                </span>
+                                {% if flat1_score > flat2_score %}<i class="fas fa-trophy text-success ms-1"></i>{% endif %}
+                            </td>
+                            <td class="text-center{% if flat2_score > flat1_score %} table-success{% elif flat2_score < flat1_score %} table-warning{% endif %}">
+                                <span class="badge bg-{% if flat2_score >= 80 %}success{% elif flat2_score >= 60 %}warning{% elif flat2_score >= 40 %}info{% else %}secondary{% endif %} fs-6">
+                                    {{ flat2_score }}%
+                                </span>
+                                {% if flat2_score > flat1_score %}<i class="fas fa-trophy text-success ms-1"></i>{% endif %}
+                            </td>
+                        </tr>
+                        
+                        <!-- Score Breakdown -->
+                        {% if flat1_breakdown or flat2_breakdown %}
+                        {% for criterion in ['flat_type', 'storey_range', 'floor_area_sqm', 'flat_model', 'price_range'] %}
+                            {% if (flat1_breakdown and criterion in flat1_breakdown) or (flat2_breakdown and criterion in flat2_breakdown) %}
+                            <tr>
+                                <td><strong>{{ criterion.replace('_', ' ').title() }} Score</strong></td>
+                                <td class="text-center{% if flat1_breakdown and flat2_breakdown and criterion in flat1_breakdown and criterion in flat2_breakdown and flat1_breakdown[criterion].score > flat2_breakdown[criterion].score %} table-success{% elif flat1_breakdown and flat2_breakdown and criterion in flat1_breakdown and criterion in flat2_breakdown and flat1_breakdown[criterion].score < flat2_breakdown[criterion].score %} table-warning{% endif %}">
+                                    {% if flat1_breakdown and criterion in flat1_breakdown %}
+                                        {{ flat1_breakdown[criterion].score }}%
+                                        {% if flat2_breakdown and criterion in flat2_breakdown and flat1_breakdown[criterion].score > flat2_breakdown[criterion].score %}<i class="fas fa-arrow-up text-success ms-1"></i>{% endif %}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td class="text-center{% if flat1_breakdown and flat2_breakdown and criterion in flat1_breakdown and criterion in flat2_breakdown and flat2_breakdown[criterion].score > flat1_breakdown[criterion].score %} table-success{% elif flat1_breakdown and flat2_breakdown and criterion in flat1_breakdown and criterion in flat2_breakdown and flat2_breakdown[criterion].score < flat1_breakdown[criterion].score %} table-warning{% endif %}">
+                                    {% if flat2_breakdown and criterion in flat2_breakdown %}
+                                        {{ flat2_breakdown[criterion].score }}%
+                                        {% if flat1_breakdown and criterion in flat1_breakdown and flat2_breakdown[criterion].score > flat1_breakdown[criterion].score %}<i class="fas fa-arrow-up text-success ms-1"></i>{% endif %}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                        {% endif %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="comparison-actions mt-4 text-center">
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('flat_detail', flat_id=flat1.id) }}" class="btn btn-outline-primary">
+            <i class="fas fa-eye"></i> View Property A Details
+        </a>
+        <a href="{{ url_for('flat_detail', flat_id=flat2.id) }}" class="btn btn-outline-success">
+            <i class="fas fa-eye"></i> View Property B Details
+        </a>
+        <button class="btn btn-outline-secondary" onclick="window.print()">
+            <i class="fas fa-print"></i> Print Comparison
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+.comparison-table th:nth-child(2) {
+    border-left: 3px solid #007bff;
+}
+
+.comparison-table th:nth-child(3) {
+    border-left: 3px solid #28a745;
+}
+
+.comparison-table td:nth-child(2) {
+    border-left: 1px solid #007bff;
+}
+
+.comparison-table td:nth-child(3) {
+    border-left: 1px solid #28a745;
+}
+
+.table-section-header td {
+    font-weight: bold;
+    background-color: #f8f9fa !important;
+}
+
+@media print {
+    .comparison-header, .comparison-actions {
+        display: none;
+    }
+}
+</style>
+{% endblock %}

@@ -147,6 +147,57 @@ def favorites():
     
     return render_template('favorites.html', flats=favorite_flats, has_preferences=user_preferences.has_preferences())
 
+@app.route('/comparison')
+def comparison():
+    """Show comparison page for selecting flats"""
+    favorite_ids = user_preferences.get_favorites()
+    favorite_flats = []
+    
+    # Get all favorite flats for selection
+    for flat_id in favorite_ids:
+        flat = database.query_id(flat_id)
+        if flat:
+            flat_dict = dict(flat)
+            preferences = user_preferences.get_preferences()
+            score = score_calculator.calculate_score(flat_dict, preferences)
+            flat_dict['compatibility_score'] = score
+            favorite_flats.append(flat_dict)
+    
+    return render_template('comparison.html', flats=favorite_flats, has_preferences=user_preferences.has_preferences())
+
+@app.route('/compare/<int:flat_id1>/<int:flat_id2>')
+def compare_flats(flat_id1, flat_id2):
+    """Compare two specific flats"""
+    # Verify both flats are in favorites
+    if not (user_preferences.is_favorite(flat_id1) and user_preferences.is_favorite(flat_id2)):
+        flash('Both flats must be in your favorites to compare them.', 'error')
+        return redirect(url_for('favorites'))
+    
+    # Get both flats
+    flat1 = database.query_id(flat_id1)
+    flat2 = database.query_id(flat_id2)
+    
+    if not flat1 or not flat2:
+        flash('One or both flats could not be found.', 'error')
+        return redirect(url_for('favorites'))
+    
+    # Calculate scores and breakdowns for both flats
+    preferences = user_preferences.get_preferences()
+    
+    flat1_dict = dict(flat1)
+    flat1_score = score_calculator.calculate_score(flat1_dict, preferences)
+    flat1_breakdown = score_calculator.get_score_breakdown(flat1_dict, preferences)
+    
+    flat2_dict = dict(flat2)
+    flat2_score = score_calculator.calculate_score(flat2_dict, preferences)
+    flat2_breakdown = score_calculator.get_score_breakdown(flat2_dict, preferences)
+    
+    return render_template('compare_result.html', 
+                         flat1=flat1, flat2=flat2,
+                         flat1_score=flat1_score, flat2_score=flat2_score,
+                         flat1_breakdown=flat1_breakdown, flat2_breakdown=flat2_breakdown,
+                         has_preferences=user_preferences.has_preferences())
+
 
 if __name__ == '__main__':
     app.run(debug=True)

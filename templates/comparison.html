@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Flats - HDB Search Singapore{% endblock %}
+
+{% block content %}
+<div class="comparison-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h2><i class="fas fa-balance-scale text-primary"></i> Compare Flats</h2>
+            <p class="text-muted">
+                Select exactly two flats from your favorites to compare them side by side
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('favorites') }}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-heart"></i> My Favorites
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if flats|length >= 2 %}
+<div class="comparison-instructions mb-4">
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        <strong>How to compare:</strong> Select exactly two flats by clicking on them, then click the "Compare Selected Flats" button.
+        <span id="selection-count" class="badge bg-primary ms-2">0 selected</span>
+    </div>
+</div>
+
+<div class="comparison-controls mb-4 text-center">
+    <button id="compare-btn" class="btn btn-success btn-lg" disabled onclick="compareSelected()">
+        <i class="fas fa-balance-scale"></i> Compare Selected Flats
+    </button>
+    <button id="clear-btn" class="btn btn-outline-secondary ms-2" onclick="clearSelection()">
+        <i class="fas fa-times"></i> Clear Selection
+    </button>
+</div>
+
+<div class="flats-grid">
+    {% for flat in flats %}
+    <div class="card mb-3 shadow-sm hover-card comparison-card" data-flat-id="{{ flat.id }}" onclick="toggleSelection(this)">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-1">
+                    <div class="selection-checkbox">
+                        <i class="fas fa-square selection-icon"></i>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <h5 class="card-title mb-1">
+                        Block {{ flat.block }}, {{ flat.street_name }}
+                        <i class="fas fa-heart text-danger ms-2" title="Favorite"></i>
+                    </h5>
+                    <p class="text-muted mb-2">{{ flat.town }}</p>
+                    
+                    <div class="flat-details">
+                        <span class="badge bg-primary me-2">{{ flat.flat_type }}</span>
+                        <span class="badge bg-info me-2">{{ flat.floor_area_sqm }}m²</span>
+                        <span class="badge bg-secondary me-2">{{ flat.storey_range }}</span>
+                        {% if has_preferences and flat.compatibility_score > 0 %}
+                        <span class="badge bg-{% if flat.compatibility_score >= 80 %}success{% elif flat.compatibility_score >= 60 %}warning{% elif flat.compatibility_score >= 40 %}info{% else %}secondary{% endif %} me-2">
+                            {{ flat.compatibility_score }}% Match
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if flat.flat_model %}
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="fas fa-building"></i> {{ flat.flat_model }}
+                        {% if flat.lease_commence_date %}
+                        | Built in {{ flat.lease_commence_date }}
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-4 text-end">
+                    <div class="price-section">
+                        <h4 class="text-success mb-1">
+                            ${{ "{:,.0f}".format(flat.resale_price) }}
+                        </h4>
+                        <p class="text-muted small mb-2">
+                            ${{ "{:,.0f}".format(flat.resale_price / flat.floor_area_sqm) }}/m²
+                        </p>
+                        <a href="{{ url_for('flat_detail', flat_id=flat.id) }}" class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation()">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% elif flats|length == 1 %}
+<div class="insufficient-flats text-center py-5">
+    <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+    <h3 class="text-muted">Only One Favorite Flat</h3>
+    <p class="text-muted mb-4">
+        You need at least 2 flats in your favorites to use the comparison feature.
+        Add more flats to your favorites first.
+    </p>
+    <div>
+        <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+            <i class="fas fa-search"></i> Find More Flats
+        </a>
+        <a href="{{ url_for('favorites') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-heart"></i> View Favorites
+        </a>
+    </div>
+</div>
+
+{% else %}
+<div class="no-favorites text-center py-5">
+    <i class="fas fa-heart-broken fa-4x text-muted mb-3"></i>
+    <h3 class="text-muted">No Favorite Flats</h3>
+    <p class="text-muted mb-4">
+        You need to add flats to your favorites before you can compare them.
+        Start by searching for flats and adding them to your favorites.
+    </p>
+    <div>
+        <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+            <i class="fas fa-search"></i> Search Flats
+        </a>
+        <a href="{{ url_for('favorites') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-heart"></i> My Favorites
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedFlats = [];
+
+function toggleSelection(card) {
+    const flatId = card.getAttribute('data-flat-id');
+    const icon = card.querySelector('.selection-icon');
+    
+    if (selectedFlats.includes(flatId)) {
+        // Deselect
+        selectedFlats = selectedFlats.filter(id => id !== flatId);
+        card.classList.remove('selected');
+        icon.classList.remove('fa-check-square');
+        icon.classList.add('fa-square');
+    } else {
+        // Select (but limit to 2)
+        if (selectedFlats.length < 2) {
+            selectedFlats.push(flatId);
+            card.classList.add('selected');
+            icon.classList.remove('fa-square');
+            icon.classList.add('fa-check-square');
+        } else {
+            alert('You can only select 2 flats for comparison. Deselect one first.');
+            return;
+        }
+    }
+    
+    updateUI();
+}
+
+function updateUI() {
+    const countElement = document.getElementById('selection-count');
+    const compareBtn = document.getElementById('compare-btn');
+    
+    countElement.textContent = `${selectedFlats.length} selected`;
+    
+    if (selectedFlats.length === 2) {
+        compareBtn.disabled = false;
+        compareBtn.classList.remove('btn-outline-success');
+        compareBtn.classList.add('btn-success');
+    } else {
+        compareBtn.disabled = true;
+        compareBtn.classList.remove('btn-success');
+        compareBtn.classList.add('btn-outline-success');
+    }
+}
+
+function compareSelected() {
+    if (selectedFlats.length === 2) {
+        window.location.href = `/compare/${selectedFlats[0]}/${selectedFlats[1]}`;
+    }
+}
+
+function clearSelection() {
+    selectedFlats = [];
+    document.querySelectorAll('.comparison-card').forEach(card => {
+        card.classList.remove('selected');
+        const icon = card.querySelector('.selection-icon');
+        icon.classList.remove('fa-check-square');
+        icon.classList.add('fa-square');
+    });
+    updateUI();
+}
+
+// Add hover effects
+document.querySelectorAll('.hover-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        if (!this.classList.contains('selected')) {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+        }
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        if (!this.classList.contains('selected')) {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '';
+        }
+    });
+});
+</script>
+
+<style>
+.comparison-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.comparison-card.selected {
+    border: 2px solid #28a745;
+    background-color: rgba(40, 167, 69, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+}
+
+.selection-checkbox {
+    font-size: 1.5rem;
+    color: #28a745;
+}
+
+.comparison-card:hover .selection-checkbox {
+    color: #1e7e34;
+}
+</style>
+{% endblock %}
