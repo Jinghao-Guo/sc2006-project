@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}User Preferences - HDB Search Singapore{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-cog"></i> Your HDB Preferences</h4>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted mb-4">Set your preferences to customize your HDB search experience. These preferences will be displayed on the home page.</p>
+                    
+                    <form action="{{ url_for('preferences') }}" method="POST">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="flat_type" class="form-label">Preferred Flat Type</label>
+                                <select class="form-select" id="flat_type" name="flat_type">
+                                    <option value="">No preference</option>
+                                    <option value="1 ROOM" {% if preferences.flat_type == '1 ROOM' %}selected{% endif %}>1 Room</option>
+                                    <option value="2 ROOM" {% if preferences.flat_type == '2 ROOM' %}selected{% endif %}>2 Room</option>
+                                    <option value="3 ROOM" {% if preferences.flat_type == '3 ROOM' %}selected{% endif %}>3 Room</option>
+                                    <option value="4 ROOM" {% if preferences.flat_type == '4 ROOM' %}selected{% endif %}>4 Room</option>
+                                    <option value="5 ROOM" {% if preferences.flat_type == '5 ROOM' %}selected{% endif %}>5 Room</option>
+                                    <option value="EXECUTIVE" {% if preferences.flat_type == 'EXECUTIVE' %}selected{% endif %}>Executive</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="storey_range" class="form-label">Preferred Storey Range</label>
+                                <select class="form-select" id="storey_range" name="storey_range">
+                                    <option value="">No preference</option>
+                                    <option value="01 TO 03" {% if preferences.storey_range == '01 TO 03' %}selected{% endif %}>01 to 03</option>
+                                    <option value="04 TO 06" {% if preferences.storey_range == '04 TO 06' %}selected{% endif %}>04 to 06</option>
+                                    <option value="07 TO 09" {% if preferences.storey_range == '07 TO 09' %}selected{% endif %}>07 to 09</option>
+                                    <option value="10 TO 12" {% if preferences.storey_range == '10 TO 12' %}selected{% endif %}>10 to 12</option>
+                                    <option value="13 TO 15" {% if preferences.storey_range == '13 TO 15' %}selected{% endif %}>13 to 15</option>
+                                    <option value="16 TO 18" {% if preferences.storey_range == '16 TO 18' %}selected{% endif %}>16 to 18</option>
+                                    <option value="19 TO 21" {% if preferences.storey_range == '19 TO 21' %}selected{% endif %}>19 to 21</option>
+                                    <option value="22 TO 24" {% if preferences.storey_range == '22 TO 24' %}selected{% endif %}>22 to 24</option>
+                                    <option value="25 TO 27" {% if preferences.storey_range == '25 TO 27' %}selected{% endif %}>25 to 27</option>
+                                    <option value="28 TO 30" {% if preferences.storey_range == '28 TO 30' %}selected{% endif %}>28 to 30</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="floor_area_sqm" class="form-label">Preferred Floor Area (sqm)</label>
+                                <select class="form-select" id="floor_area_sqm" name="floor_area_sqm">
+                                    <option value="">No preference</option>
+                                    <option value="30-50" {% if preferences.floor_area_sqm == '30-50' %}selected{% endif %}>30-50 sqm</option>
+                                    <option value="51-70" {% if preferences.floor_area_sqm == '51-70' %}selected{% endif %}>51-70 sqm</option>
+                                    <option value="71-90" {% if preferences.floor_area_sqm == '71-90' %}selected{% endif %}>71-90 sqm</option>
+                                    <option value="91-110" {% if preferences.floor_area_sqm == '91-110' %}selected{% endif %}>91-110 sqm</option>
+                                    <option value="111-130" {% if preferences.floor_area_sqm == '111-130' %}selected{% endif %}>111-130 sqm</option>
+                                    <option value="131-150" {% if preferences.floor_area_sqm == '131-150' %}selected{% endif %}>131-150 sqm</option>
+                                    <option value="151+" {% if preferences.floor_area_sqm == '151+' %}selected{% endif %}>151+ sqm</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="flat_model" class="form-label">Preferred Flat Model</label>
+                                <select class="form-select" id="flat_model" name="flat_model">
+                                    <option value="">No preference</option>
+                                    <option value="Standard" {% if preferences.flat_model == 'Standard' %}selected{% endif %}>Standard</option>
+                                    <option value="Improved" {% if preferences.flat_model == 'Improved' %}selected{% endif %}>Improved</option>
+                                    <option value="New Generation" {% if preferences.flat_model == 'New Generation' %}selected{% endif %}>New Generation</option>
+                                    <option value="DBSS" {% if preferences.flat_model == 'DBSS' %}selected{% endif %}>DBSS</option>
+                                    <option value="Model A" {% if preferences.flat_model == 'Model A' %}selected{% endif %}>Model A</option>
+                                    <option value="Model A2" {% if preferences.flat_model == 'Model A2' %}selected{% endif %}>Model A2</option>
+                                    <option value="Premium Apartment" {% if preferences.flat_model == 'Premium Apartment' %}selected{% endif %}>Premium Apartment</option>
+                                    <option value="Maisonette" {% if preferences.flat_model == 'Maisonette' %}selected{% endif %}>Maisonette</option>
+                                    <option value="Apartment" {% if preferences.flat_model == 'Apartment' %}selected{% endif %}>Apartment</option>
+                                    <option value="Simplified" {% if preferences.flat_model == 'Simplified' %}selected{% endif %}>Simplified</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="price_range" class="form-label">Preferred Price Range</label>
+                                <select class="form-select" id="price_range" name="price_range">
+                                    <option value="">No preference</option>
+                                    <option value="Under 200k" {% if preferences.price_range == 'Under 200k' %}selected{% endif %}>Under $200,000</option>
+                                    <option value="200k-300k" {% if preferences.price_range == '200k-300k' %}selected{% endif %}>$200,000 - $300,000</option>
+                                    <option value="300k-400k" {% if preferences.price_range == '300k-400k' %}selected{% endif %}>$300,000 - $400,000</option>
+                                    <option value="400k-500k" {% if preferences.price_range == '400k-500k' %}selected{% endif %}>$400,000 - $500,000</option>
+                                    <option value="500k-600k" {% if preferences.price_range == '500k-600k' %}selected{% endif %}>$500,000 - $600,000</option>
+                                    <option value="600k-700k" {% if preferences.price_range == '600k-700k' %}selected{% endif %}>$600,000 - $700,000</option>
+                                    <option value="700k-800k" {% if preferences.price_range == '700k-800k' %}selected{% endif %}>$700,000 - $800,000</option>
+                                    <option value="800k-1M" {% if preferences.price_range == '800k-1M' %}selected{% endif %}>$800,000 - $1,000,000</option>
+                                    <option value="Over 1M" {% if preferences.price_range == 'Over 1M' %}selected{% endif %}>Over $1,000,000</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Preferences
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

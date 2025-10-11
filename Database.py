@@ -9,7 +9,6 @@ class Database:
     def __init__(self, db_path=DATABASE):
         self.db_path = db_path
         self.connection = None
-        self.initdb()
     
     def connect(self):
         """Establish a database connection"""
@@ -37,12 +36,22 @@ class Database:
                 floor_area_sqm REAL,
                 flat_model TEXT,
                 lease_commence_date INTEGER,
-                remaining_lease TEXT,
-                resale_price REAL,
-                month TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
+                resale_price REAL
+                )
         ''')
+        self.connection.commit()
+        self.close()
+    def insert_flat(self, town, flat_type, block, street_name, storey_range,
+                    floor_area_sqm, flat_model, lease_commence_date, resale_price):
+        """Insert a new flat record into the database"""
+        self.connect()
+        self.connection.execute('''
+            INSERT INTO hdb_flats (town, flat_type, block, street_name, storey_range,
+                                   floor_area_sqm, flat_model, lease_commence_date,
+                                   resale_price)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (town, flat_type, block, street_name, storey_range,
+              floor_area_sqm, flat_model, lease_commence_date, resale_price))
         self.connection.commit()
         self.close()
 
@@ -76,4 +85,12 @@ class Database:
         flat = self.connection.execute('SELECT * FROM hdb_flats WHERE id = ?', (id,)).fetchone()
         self.close()
         return flat
+    def clear_data(self):
+        """Clear all data from the hdb_flats table"""
+        self.connect()
+        self.connection.execute('DELETE FROM hdb_flats')
+        self.connection.commit()
+        self.close()
+
+database = Database()
     

@@ -15,6 +15,73 @@
     </div>
 </div>
 
+<!-- User Preferences Section -->
+{% if has_preferences %}
+<div class="preferences-section mb-4">
+    <div class="card border-success">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-user-cog"></i> Your Preferences</h5>
+            <div>
+                <a href="{{ url_for('preferences') }}" class="btn btn-outline-light btn-sm me-2">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <form style="display: inline;" action="{{ url_for('clear_preferences') }}" method="POST" onsubmit="return confirm('Are you sure you want to clear all preferences?')">
+                    <button type="submit" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% if preferences.flat_type %}
+                <div class="col-md-3 mb-2">
+                    <strong>Flat Type:</strong><br>
+                    <span class="badge bg-primary">{{ preferences.flat_type }}</span>
+                </div>
+                {% endif %}
+                {% if preferences.storey_range %}
+                <div class="col-md-3 mb-2">
+                    <strong>Storey Range:</strong><br>
+                    <span class="badge bg-primary">{{ preferences.storey_range }}</span>
+                </div>
+                {% endif %}
+                {% if preferences.floor_area_sqm %}
+                <div class="col-md-3 mb-2">
+                    <strong>Floor Area:</strong><br>
+                    <span class="badge bg-primary">{{ preferences.floor_area_sqm }} sqm</span>
+                </div>
+                {% endif %}
+                {% if preferences.flat_model %}
+                <div class="col-md-3 mb-2">
+                    <strong>Flat Model:</strong><br>
+                    <span class="badge bg-primary">{{ preferences.flat_model }}</span>
+                </div>
+                {% endif %}
+                {% if preferences.price_range %}
+                <div class="col-md-3 mb-2">
+                    <strong>Price Range:</strong><br>
+                    <span class="badge bg-success">{{ preferences.price_range }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="preferences-section mb-4">
+    <div class="alert alert-info d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-info-circle"></i> 
+            <strong>Set your preferences</strong> to customize your HDB search experience.
+        </div>
+        <a href="{{ url_for('preferences') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-cog"></i> Set Preferences
+        </a>
+    </div>
+</div>
+{% endif %}
+
 <div class="search-section">
     <div class="card shadow-sm">
         <div class="card-body p-4">
@@ -103,8 +170,8 @@
             <div class="card h-100 text-center">
                 <div class="card-body">
                     <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">Market Insights</h5>
-                    <p class="card-text">Get detailed information about prices, trends, and neighborhood data.</p>
+                    <h5 class="card-title">Personalized scores</h5>
+                    <p class="card-text">(to do)</p>
                 </div>
             </div>
         </div>
