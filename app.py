@@ -1,44 +1,10 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
-import sqlite3
-import requests
-import json
-from datetime import datetime
-import os
+from Database import Database
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 
-# Database configuration
-DATABASE = 'hdb_flats.db'
-
-def get_db_connection():
-    """Get database connection"""
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def init_db():
-    """Initialize the database with HDB flats table"""
-    conn = get_db_connection()
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS hdb_flats (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            town TEXT NOT NULL,
-            flat_type TEXT NOT NULL,
-            block TEXT NOT NULL,
-            street_name TEXT NOT NULL,
-            storey_range TEXT NOT NULL,
-            floor_area_sqm REAL,
-            flat_model TEXT,
-            lease_commence_date INTEGER,
-            remaining_lease TEXT,
-            resale_price REAL,
-            month TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    conn.commit()
-    conn.close()
+database = Database()
 
 @app.route('/')
 def index():
@@ -52,65 +18,18 @@ def search():
     town = request.args.get('town', '').strip()
     flat_type = request.args.get('flat_type', '').strip()
     
-    conn = get_db_connection()
-    
-    # Build dynamic query based on search parameters
-    sql_query = '''
-        SELECT * FROM hdb_flats 
-        WHERE 1=1
-    '''
-    params = []
-    
-    if query:
-        sql_query += ' AND (town LIKE ? OR street_name LIKE ? OR block LIKE ?)'
-        params.extend([f'%{query}%', f'%{query}%', f'%{query}%'])
-    
-    if town:
-        sql_query += ' AND town LIKE ?'
-        params.append(f'%{town}%')
-    
-    if flat_type:
-        sql_query += ' AND flat_type LIKE ?'
-        params.append(f'%{flat_type}%')
-    
-    sql_query += ' ORDER BY resale_price DESC LIMIT 50'
-    
-    flats = conn.execute(sql_query, params).fetchall()
-    conn.close()
+    flats = database.search_flats(query, town, flat_type)
     
     return render_template('search_results.html', flats=flats, query=query, town=town, flat_type=flat_type)
 
 @app.route('/flat/<int:flat_id>')
 def flat_detail(flat_id):
     """Show detailed information for a specific HDB flat"""
-    conn = get_db_connection()
-    flat = conn.execute('SELECT * FROM hdb_flats WHERE id = ?', (flat_id,)).fetchone()
-    conn.close()
-    
+    flat = database.query_id(flat_id)
     if flat is None:
-        return "Flat not found", 404
-    
+        return redirect(url_for('index'))
     return render_template('flat_detail.html', flat=flat)
 
-@app.route('/api/search')
-def api_search():
-    """API endpoint for autocomplete search"""
-    query = request.args.get('q', '').strip()
-    
-    if len(query) < 2:
-        return jsonify([])
-    
-    conn = get_db_connection()
-    results = conn.execute('''
-        SELECT DISTINCT town, street_name, block, flat_type, resale_price, id
-        FROM hdb_flats 
-        WHERE town LIKE ? OR street_name LIKE ? OR block LIKE ?
-        ORDER BY resale_price DESC
-        LIMIT 10
-    ''', (f'%{query}%', f'%{query}%', f'%{query}%')).fetchall()
-    conn.close()
-    
-    return jsonify([dict(row) for row in results])
 
 @app.route('/populate_data')
 def populate_data():
@@ -186,7 +105,7 @@ def populate_data():
             }
         ]
         
-        conn = get_db_connection()
+        conn = database.connect()
         
         # Clear existing data
         conn.execute('DELETE FROM hdb_flats')
@@ -214,5 +133,4 @@ def populate_data():
         return jsonify({'status': 'error', 'message': str(e)})
 
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
