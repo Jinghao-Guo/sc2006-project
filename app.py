@@ -6,10 +6,6 @@ from scoreCalculator import score_calculator
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 
-
-
-
-
 @app.route('/')
 def index():
     """Home page with search functionality"""

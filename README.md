@@ -7,13 +7,20 @@ A comprehensive Flask web application for searching HDB (Housing & Development B
 ```
 sc2006/
 ├── app.py                  # Main Flask application
+├── Database.py             # Database-related operations
+├── dataPrepare.py          # Data preparation script
 ├── requirements.txt        # Python dependencies
-├── hdb_flats.db           # SQLite database (created automatically)
+├── scoreCalculator.py      # Score calculation logic
+├── Userpreferences.py      # User preferences handling
 ├── templates/             # Jinja2 HTML templates
 │   ├── base.html          # Base template with navigation
+│   ├── compare_result.html # Comparison result page
+│   ├── comparison.html    # Comparison page
+│   ├── favorites.html     # Favorites page
+│   ├── flat_detail.html   # Detailed flat information
 │   ├── index.html         # Home page with search form
-│   ├── search_results.html # Search results listing
-│   └── flat_detail.html   # Detailed flat information
+│   ├── preferences.html   # Preferences page
+│   └── search_results.html # Search results listing
 └── static/                # Static assets
     ├── css/
     │   └── style.css      # Custom styles
