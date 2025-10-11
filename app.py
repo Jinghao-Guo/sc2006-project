@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from Database import database
 from Userpreferences import user_preferences
-from score_calculator import score_calculator
+from scoreCalculator import score_calculator
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -14,7 +14,25 @@ app.config['SECRET_KEY'] = 'your-secret-key-here'
 def index():
     """Home page with search functionality"""
     preferences = user_preferences.get_preferences()
-    return render_template('index.html', preferences=preferences, has_preferences=user_preferences.has_preferences())
+    
+    # Get favorite flats for display on home page
+    favorite_ids = user_preferences.get_favorites()
+    favorite_flats = []
+    
+    # Get up to 3 favorite flats for preview on home page
+    for flat_id in favorite_ids[:3]:
+        flat = database.query_id(flat_id)
+        if flat:
+            flat_dict = dict(flat)
+            score = score_calculator.calculate_score(flat_dict, preferences)
+            flat_dict['compatibility_score'] = score
+            favorite_flats.append(flat_dict)
+    
+    return render_template('index.html', 
+                         preferences=preferences, 
+                         has_preferences=user_preferences.has_preferences(),
+                         favorite_flats=favorite_flats,
+                         favorites_count=user_preferences.get_favorites_count())
 
 @app.route('/search')
 def search():
@@ -56,7 +74,8 @@ def flat_detail(flat_id):
     score_breakdown = score_calculator.get_score_breakdown(flat_dict, preferences)
     
     return render_template('flat_detail.html', flat=flat, compatibility_score=score, 
-                         score_breakdown=score_breakdown, has_preferences=user_preferences.has_preferences())
+                         score_breakdown=score_breakdown, has_preferences=user_preferences.has_preferences(),
+                         is_favorite=user_preferences.is_favorite(flat_id))
 
 @app.route('/preferences', methods=['GET', 'POST'])
 def preferences():
@@ -83,6 +102,50 @@ def clear_preferences():
     user_preferences.set_preferences()
     flash('Your preferences have been cleared.', 'info')
     return redirect(url_for('index'))
+
+@app.route('/add_to_favorites/<int:flat_id>', methods=['POST'])
+def add_to_favorites(flat_id):
+    """Add a flat to favorites"""
+    # Check if flat exists
+    flat = database.query_id(flat_id)
+    if flat is None:
+        flash('Flat not found.', 'error')
+        return redirect(url_for('index'))
+    
+    if user_preferences.add_to_favorites(flat_id):
+        flash('Flat added to your favorites!', 'success')
+    else:
+        flash('This flat is already in your favorites.', 'info')
+    
+    return redirect(url_for('flat_detail', flat_id=flat_id))
+
+@app.route('/remove_from_favorites/<int:flat_id>', methods=['POST'])
+def remove_from_favorites(flat_id):
+    """Remove a flat from favorites"""
+    if user_preferences.remove_from_favorites(flat_id):
+        flash('Flat removed from your favorites.', 'info')
+    else:
+        flash('This flat was not in your favorites.', 'warning')
+    
+    return redirect(request.referrer or url_for('index'))
+
+@app.route('/favorites')
+def favorites():
+    """View all favorite flats"""
+    favorite_ids = user_preferences.get_favorites()
+    favorite_flats = []
+    
+    for flat_id in favorite_ids:
+        flat = database.query_id(flat_id)
+        if flat:
+            # Convert to dict and add score
+            flat_dict = dict(flat)
+            preferences = user_preferences.get_preferences()
+            score = score_calculator.calculate_score(flat_dict, preferences)
+            flat_dict['compatibility_score'] = score
+            favorite_flats.append(flat_dict)
+    
+    return render_template('favorites.html', flats=favorite_flats, has_preferences=user_preferences.has_preferences())
 
 
 if __name__ == '__main__':

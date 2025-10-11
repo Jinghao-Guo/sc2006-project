@@ -163,9 +163,19 @@
                 <p class="text-muted mb-3">${{ "{:,.0f}".format(flat.resale_price / flat.floor_area_sqm) }} per m²</p>
                 
                 <div class="d-grid gap-2">
-                    <button class="btn btn-success btn-lg" onclick="showInterestModal()">
-                        <i class="fas fa-heart"></i> Show Interest
-                    </button>
+                    {% if is_favorite %}
+                    <form method="POST" action="{{ url_for('remove_from_favorites', flat_id=flat.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-warning btn-lg w-100">
+                            <i class="fas fa-heart-broken"></i> Remove from Favorites
+                        </button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('add_to_favorites', flat_id=flat.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-heart"></i> Add to Favorites
+                        </button>
+                    </form>
+                    {% endif %}
                     <button class="btn btn-outline-primary" onclick="shareProperty()">
                         <i class="fas fa-share"></i> Share Property
                     </button>
@@ -199,37 +209,11 @@
     </div>
 </div>
 
-<!-- Interest Modal -->
-<div class="modal fade" id="interestModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Show Interest</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>This is a demo website. In a real application, this would connect you with property agents or the HDB resale platform.</p>
-                <div class="alert alert-info">
-                    <strong>Property:</strong> Block {{ flat.block }}, {{ flat.street_name }}<br>
-                    <strong>Price:</strong> ${{ "{:,.0f}".format(flat.resale_price) }}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Contact Agent</button>
-            </div>
-        </div>
-    </div>
-</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-function showInterestModal() {
-    var modal = new bootstrap.Modal(document.getElementById('interestModal'));
-    modal.show();
-}
-
 function shareProperty() {
     if (navigator.share) {
         navigator.share({

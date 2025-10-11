@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}My Favorites - HDB Search Singapore{% endblock %}
+
+{% block content %}
+<div class="favorites-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h2><i class="fas fa-heart text-danger"></i> My Favorite Flats</h2>
+            <p class="text-muted">
+                {% if flats %}
+                You have {{ flats|length }} favorite flat{{ 's' if flats|length != 1 else '' }}
+                {% else %}
+                You haven't added any flats to your favorites yet
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if flats %}
+<div class="results-grid">
+    {% for flat in flats %}
+    <div class="card mb-3 shadow-sm hover-card border-danger">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="card-title mb-1">
+                        <a href="{{ url_for('flat_detail', flat_id=flat.id) }}" class="text-decoration-none">
+                            Block {{ flat.block }}, {{ flat.street_name }}
+                        </a>
+                        <i class="fas fa-heart text-danger ms-2" title="Favorite"></i>
+                    </h5>
+                    <p class="text-muted mb-2">{{ flat.town }}</p>
+                    
+                    <div class="flat-details">
+                        <span class="badge bg-primary me-2">{{ flat.flat_type }}</span>
+                        <span class="badge bg-info me-2">{{ flat.floor_area_sqm }}m²</span>
+                        <span class="badge bg-secondary me-2">{{ flat.storey_range }}</span>
+                        {% if has_preferences and flat.compatibility_score > 0 %}
+                        <span class="badge bg-{% if flat.compatibility_score >= 80 %}success{% elif flat.compatibility_score >= 60 %}warning{% elif flat.compatibility_score >= 40 %}info{% else %}secondary{% endif %} me-2">
+                            {{ flat.compatibility_score }}% Match
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if flat.flat_model %}
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="fas fa-building"></i> {{ flat.flat_model }}
+                        {% if flat.lease_commence_date %}
+                        | Built in {{ flat.lease_commence_date }}
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-4 text-end">
+                    <div class="price-section">
+                        <h4 class="text-success mb-1">
+                            ${{ "{:,.0f}".format(flat.resale_price) }}
+                        </h4>
+                        <p class="text-muted small mb-2">
+                            ${{ "{:,.0f}".format(flat.resale_price / flat.floor_area_sqm) }}/m²
+                        </p>
+                        <div class="btn-group" role="group">
+                            <a href="{{ url_for('flat_detail', flat_id=flat.id) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            <form method="POST" action="{{ url_for('remove_from_favorites', flat_id=flat.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Remove this flat from favorites?')">
+                                    <i class="fas fa-heart-broken"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="favorites-actions mt-4 text-center">
+    <div class="card">
+        <div class="card-body">
+            <h6 class="card-title">Manage Your Favorites</h6>
+            <p class="card-text text-muted">You can remove flats from your favorites by clicking the heart-broken icon, or continue searching for more properties.</p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+                <i class="fas fa-search"></i> Search More Flats
+            </a>
+            {% if has_preferences %}
+            <a href="{{ url_for('preferences') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-cog"></i> Update Preferences
+            </a>
+            {% else %}
+            <a href="{{ url_for('preferences') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-cog"></i> Set Your Preferences
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="no-favorites text-center py-5">
+    <i class="fas fa-heart-broken fa-4x text-muted mb-3"></i>
+    <h3 class="text-muted">No Favorite Flats Yet</h3>
+    <p class="text-muted mb-4">
+        Start exploring HDB flats and click the "Add to Favorites" button on properties you like.
+        Your favorites will appear here for easy access.
+    </p>
+    <div>
+        <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+            <i class="fas fa-search"></i> Start Searching
+        </a>
+        {% if not has_preferences %}
+        <a href="{{ url_for('preferences') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-cog"></i> Set Your Preferences
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add hover effect for cards
+document.querySelectorAll('.hover-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+        this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = '';
+    });
+});
+</script>
+{% endblock %}

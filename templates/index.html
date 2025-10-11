@@ -142,6 +142,56 @@
     </div>
 </div>
 
+<!-- Favorites Section -->
+{% if favorite_flats %}
+<div class="favorites-section mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="fas fa-heart text-danger"></i> Your Favorite Flats</h3>
+        <div>
+            {% if favorites_count > 3 %}
+            <span class="badge bg-primary me-2">{{ favorites_count }} favorites</span>
+            {% endif %}
+            <a href="{{ url_for('favorites') }}" class="btn btn-outline-primary">
+                View All Favorites <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        {% for flat in favorite_flats %}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 shadow-sm border-danger">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <a href="{{ url_for('flat_detail', flat_id=flat.id) }}" class="text-decoration-none">
+                            Block {{ flat.block }}, {{ flat.street_name }}
+                        </a>
+                    </h6>
+                    <p class="text-muted small mb-2">{{ flat.town }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary">{{ flat.flat_type }}</span>
+                        {% if has_preferences and flat.compatibility_score > 0 %}
+                        <span class="badge bg-success">{{ flat.compatibility_score }}% Match</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="text-success mb-0">${{ "{:,.0f}".format(flat.resale_price) }}</h6>
+                        <form method="POST" action="{{ url_for('remove_from_favorites', flat_id=flat.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Remove from favorites">
+                                <i class="fas fa-heart-broken"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <div class="features-section mt-5">
     <h3 class="text-center mb-4">Why Choose Our HDB Search?</h3>
     <div class="row g-4">
