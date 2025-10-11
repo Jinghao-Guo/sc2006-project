@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from Database import database
 from Userpreferences import user_preferences
+from score_calculator import score_calculator
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -24,7 +25,22 @@ def search():
     
     flats = database.search_flats(query, town, flat_type)
     
-    return render_template('search_results.html', flats=flats, query=query, town=town, flat_type=flat_type)
+    # Calculate scores for each flat based on user preferences
+    preferences = user_preferences.get_preferences()
+    flats_with_scores = []
+    
+    for flat in flats:
+        # Convert sqlite Row to dict for easier handling
+        flat_dict = dict(flat)
+        score = score_calculator.calculate_score(flat_dict, preferences)
+        flat_dict['compatibility_score'] = score
+        flats_with_scores.append(flat_dict)
+    
+    # Sort by score if preferences are set, otherwise keep original order (price desc)
+    if user_preferences.has_preferences():
+        flats_with_scores.sort(key=lambda x: x['compatibility_score'], reverse=True)
+    
+    return render_template('search_results.html', flats=flats_with_scores, query=query, town=town, flat_type=flat_type, has_preferences=user_preferences.has_preferences())
 
 @app.route('/flat/<int:flat_id>')
 def flat_detail(flat_id):
@@ -32,7 +48,15 @@ def flat_detail(flat_id):
     flat = database.query_id(flat_id)
     if flat is None:
         return redirect(url_for('index'))
-    return render_template('flat_detail.html', flat=flat)
+    
+    # Calculate compatibility score and breakdown
+    preferences = user_preferences.get_preferences()
+    flat_dict = dict(flat)
+    score = score_calculator.calculate_score(flat_dict, preferences)
+    score_breakdown = score_calculator.get_score_breakdown(flat_dict, preferences)
+    
+    return render_template('flat_detail.html', flat=flat, compatibility_score=score, 
+                         score_breakdown=score_breakdown, has_preferences=user_preferences.has_preferences())
 
 @app.route('/preferences', methods=['GET', 'POST'])
 def preferences():
