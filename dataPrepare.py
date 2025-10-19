@@ -18,6 +18,7 @@ csv_data = StringIO(response.text)
 df = pd.read_csv(csv_data)
 
 database.clear_data()
+database.initdb()
 for _, record in tqdm(df.iterrows()):
     database.insert_flat(
         town=record.get("town", ""),
