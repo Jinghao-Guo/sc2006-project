@@ -117,6 +117,15 @@ class Database:
     def clear_data(self):
         """Clear all data from the hdb_flats table"""
         self.connect()
+        
+        # Check if hdb_flats table exists
+        cursor = self.connection.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='hdb_flats'"
+        )
+        if cursor.fetchone() is None:
+            self.close()
+            return
+        
         self.connection.execute("DELETE FROM hdb_flats")
         self.connection.commit()
         self.close()
