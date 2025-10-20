@@ -36,17 +36,24 @@ sc2006/
    ```bash
    pip install -r requirements.txt
    ```
+
 3. **Populate data from gov website**
    ```bash
    python dataPrepare.py
    ```
+   This may take some time as dataset is very large
 
-4. **Run the Flask application**:
+4. **Set your google map api key**
+   ```bash
+   export GOOGLE_MAPS_API_KEY="your-api-key-here"
+   ```
+
+5. **Run the Flask application**:
    ```bash
    python app.py
    ```
 
-5. **Open your browser** and navigate to:
+6. **Open your browser** and navigate to:
    ```
    http://127.0.0.1:5000
    ```

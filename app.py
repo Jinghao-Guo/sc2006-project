@@ -2,9 +2,11 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from Database import database
 from Userpreferences import user_preferences
 from scoreCalculator import score_calculator
+import os
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "your-secret-key-here"
+app.config["GOOGLE_MAPS_API_KEY"] = os.environ.get("GOOGLE_MAPS_API_KEY", "")
 
 
 @app.route("/")
@@ -88,6 +90,7 @@ def flat_detail(flat_id):
         score_breakdown=score_breakdown,
         has_preferences=user_preferences.has_preferences(),
         is_favorite=user_preferences.is_favorite(flat_id),
+        google_maps_api_key=app.config["GOOGLE_MAPS_API_KEY"],
     )
 
 
