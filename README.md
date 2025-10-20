@@ -1,4 +1,4 @@
-# HDB Search Singapore - Flask Demo Application
+# HDB Search Singapore - Demo Application
 
 A comprehensive Flask web application for searching HDB (Housing & Development Board) resale flats in Singapore. This demo showcases a complete real estate search platform with interactive features, responsive design, and database integration.
 
