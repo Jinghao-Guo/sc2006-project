@@ -38,12 +38,22 @@ def index():
 
 @app.route("/search")
 def search():
-    """Search HDB flats based on query parameters"""
+    """Search HDB flats based on query parameters with pagination"""
     query = request.args.get("q", "").strip()
     town = request.args.get("town", "").strip()
     flat_type = request.args.get("flat_type", "").strip()
-
-    flats = database.search_flats(query, town, flat_type)
+    page = request.args.get("page", 1, type=int)
+    
+    # Pagination settings
+    per_page = 20  # Show 20 results per page
+    offset = (page - 1) * per_page
+    
+    # Get total count for pagination
+    total_count = database.count_search_results(query, town, flat_type)
+    total_pages = (total_count + per_page - 1) // per_page  # Ceiling division
+    
+    # Get flats for current page
+    flats = database.search_flats(query, town, flat_type, limit=per_page, offset=offset)
 
     # Calculate scores for each flat based on user preferences
     preferences = user_preferences.get_preferences()
@@ -67,6 +77,10 @@ def search():
         town=town,
         flat_type=flat_type,
         has_preferences=user_preferences.has_preferences(),
+        page=page,
+        total_pages=total_pages,
+        total_count=total_count,
+        per_page=per_page,
     )
 
 

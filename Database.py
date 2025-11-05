@@ -81,8 +81,8 @@ class Database:
         self.connection.commit()
         self.close()
 
-    def search_flats(self, query, town, flat_type):
-        """Search for HDB flats with given filters and sorting"""
+    def search_flats(self, query, town, flat_type, limit=100, offset=0):
+        """Search for HDB flats with given filters, sorting, and pagination"""
         self.connect()
         sql_query = "SELECT * FROM hdb_flats WHERE 1=1"
         params = []
@@ -99,11 +99,34 @@ class Database:
             sql_query += " AND flat_type LIKE ?"
             params.append(f"%{flat_type}%")
 
-        sql_query += f" ORDER BY resale_price DESC LIMIT 10"
+        sql_query += f" ORDER BY resale_price DESC LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
 
         flats = self.connection.execute(sql_query, params).fetchall()
         self.close()
         return flats
+    
+    def count_search_results(self, query, town, flat_type):
+        """Count total number of flats matching the search criteria"""
+        self.connect()
+        sql_query = "SELECT COUNT(*) as count FROM hdb_flats WHERE 1=1"
+        params = []
+
+        if query:
+            sql_query += " AND (town LIKE ? OR street_name LIKE ? OR block LIKE ?)"
+            params.extend([f"%{query}%", f"%{query}%", f"%{query}%"])
+
+        if town:
+            sql_query += " AND town LIKE ?"
+            params.append(f"%{town}%")
+
+        if flat_type:
+            sql_query += " AND flat_type LIKE ?"
+            params.append(f"%{flat_type}%")
+
+        result = self.connection.execute(sql_query, params).fetchone()
+        self.close()
+        return result['count'] if result else 0
 
     def query_id(self, id):
         """Query a flat by its ID"""

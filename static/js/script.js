@@ -414,4 +414,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Scroll to top on pagination link click
+    document.querySelectorAll('.pagination .page-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (!this.closest('.page-item').classList.contains('disabled')) {
+                // Smooth scroll to top
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Show loading indicator when navigating pages
+    document.querySelectorAll('.pagination .page-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            const pageItem = this.closest('.page-item');
+            if (!pageItem.classList.contains('disabled') && !pageItem.classList.contains('active')) {
+                // Add loading class to indicate page is loading
+                document.body.style.cursor = 'wait';
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+        });
+    });
 });
