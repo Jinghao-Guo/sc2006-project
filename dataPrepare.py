@@ -19,7 +19,8 @@ df = pd.read_csv(csv_data)
 
 database.clear_data()
 database.initdb()
-for _, record in tqdm(df.iterrows()):
+records_list = df.to_dict("records")
+for record in tqdm(records_list):
     database.insert_flat(
         town=record.get("town", ""),
         flat_type=record.get("flat_type", ""),

@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize animations
     initializeAnimations();
     
+    // Initialize smooth scroll
+    initializeSmoothScroll();
+    
+    // Initialize card hover effects
+    initializeCardEffects();
+    
     // Initialize tooltips if Bootstrap is available
     if (typeof bootstrap !== 'undefined') {
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -14,6 +20,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     }
+    
+    // Add page transition effect
+    document.body.style.opacity = '0';
+    setTimeout(() => {
+        document.body.style.transition = 'opacity 0.3s ease-in';
+        document.body.style.opacity = '1';
+    }, 10);
 });
 
 // Search functionality
@@ -212,9 +225,44 @@ function initializeAnimations() {
     }, observerOptions);
     
     // Observe all cards
-    document.querySelectorAll('.card').forEach(card => {
+    document.querySelectorAll('.card, .features-section .col-md-4').forEach(card => {
         observer.observe(card);
     });
+}
+
+// Smooth scroll initialization
+function initializeSmoothScroll() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+}
+
+// Card hover effects
+function initializeCardEffects() {
+    document.querySelectorAll('.hover-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        });
+    });
+    
+    // Add parallax effect to hero section
+    const heroSection = document.querySelector('.hero-section');
+    if (heroSection) {
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const rate = scrolled * 0.5;
+            heroSection.style.transform = `translate3d(0, ${rate}px, 0)`;
+        });
+    }
 }
 
 // Utility functions
@@ -316,4 +364,54 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchForm) {
         searchForm.addEventListener('submit', saveSearchPreferences);
     }
+    
+    // Initialize back to top button
+    initializeBackToTop();
+});
+
+// Back to top button
+function initializeBackToTop() {
+    // Create back to top button
+    const backToTopBtn = document.createElement('div');
+    backToTopBtn.className = 'back-to-top';
+    backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+    backToTopBtn.setAttribute('title', 'Back to top');
+    document.body.appendChild(backToTopBtn);
+    
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+            backToTopBtn.classList.add('show');
+        } else {
+            backToTopBtn.classList.remove('show');
+        }
+    });
+    
+    // Scroll to top when clicked
+    backToTopBtn.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+}
+
+// Add loading animation to form submissions
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn && !submitBtn.classList.contains('no-loading')) {
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+                submitBtn.disabled = true;
+                
+                // Re-enable after 5 seconds as fallback
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }, 5000);
+            }
+        });
+    });
 });
