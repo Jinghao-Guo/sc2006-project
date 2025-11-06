@@ -1,59 +1,120 @@
-# HDB Search Singapore - Demo Application
+# 🏠 HDB Resale Flat Finder
 
-A comprehensive Flask web application for searching HDB (Housing & Development Board) resale flats in Singapore. This demo showcases a complete real estate search platform with interactive features, responsive design, and database integration.
+> A smart Flask web application for searching and comparing HDB resale flats in Singapore with personalized compatibility scoring.
 
-## Project Structure
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-```
-sc2006/
-├── app.py                  # Main Flask application
-├── Database.py             # Database-related operations
-├── dataPrepare.py          # Data preparation script
-├── requirements.txt        # Python dependencies
-├── scoreCalculator.py      # Score calculation logic
-├── Userpreferences.py      # User preferences handling
-├── templates/             # Jinja2 HTML templates
-│   ├── base.html          # Base template with navigation
-│   ├── compare_result.html # Comparison result page
-│   ├── comparison.html    # Comparison page
-│   ├── favorites.html     # Favorites page
-│   ├── flat_detail.html   # Detailed flat information
-│   ├── index.html         # Home page with search form
-│   ├── preferences.html   # Preferences page
-│   └── search_results.html # Search results listing
-└── static/                # Static assets
-    ├── css/
-    │   └── style.css      # Custom styles
-    └── js/
-        └── script.js      # Interactive JavaScript
+## ✨ Features
+
+```mermaid
+graph LR
+    A[🔍 Search] --> B[📊 Smart Scoring]
+    A --> C[⭐ Favorites]
+    B --> D[🔄 Compare]
+    C --> D
+    D --> E[📍 Map View]
 ```
 
-## Installation & Setup
+- **Smart Search** - Filter by town, flat type, and keywords with pagination
+- **Personalized Scoring** - AI-powered compatibility scores based on your preferences
+- **Favorites System** - Save and manage your preferred properties
+- **Side-by-Side Comparison** - Compare two flats with detailed metrics
+- **Interactive Maps** - Visualize locations with Google Maps integration
 
-1. **Clone or download the project files**
+## 🚀 Quick Start
 
-2. **Install Python dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Prerequisites
+- Python 3.8+
+- Google Maps API key ([Get one here](https://developers.google.com/maps/documentation/javascript/get-api-key))
 
-3. **Populate data from gov website**
-   ```bash
-   python dataPrepare.py
-   ```
-   This may take some time as dataset is very large
+### Installation
 
-4. **Set your google map api key**
-   ```bash
-   export GOOGLE_MAPS_API_KEY="your-api-key-here"
-   ```
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
 
-5. **Run the Flask application**:
-   ```bash
-   python app.py
-   ```
+# 2. Fetch HDB data (this may take a few minutes)
+python dataPrepare.py
 
-6. **Open your browser** and navigate to:
-   ```
-   http://127.0.0.1:5000
-   ```
+# 3. Set your Google Maps API key
+export GOOGLE_MAPS_API_KEY="your-api-key-here"
+
+# 4. Run the application
+python app.py
+```
+
+🌐 Open **http://127.0.0.1:5000** in your browser
+
+## 📁 Architecture
+
+```
+┌─────────────────┬──────────────────────────────────────┐
+│ Component       │ Description                          │
+├─────────────────┼──────────────────────────────────────┤
+│ app.py          │ Flask routes & application logic     │
+│ Database.py     │ SQLite database operations           │
+│ scoreCalculator │ Compatibility scoring algorithm      │
+│ Userpreferences │ User preferences management          │
+│ dataPrepare.py  │ Data ingestion from gov.sg API       │
+├─────────────────┼──────────────────────────────────────┤
+│ templates/      │ Jinja2 HTML templates                │
+│ static/         │ CSS & JavaScript assets              │
+└─────────────────┴──────────────────────────────────────┘
+```
+
+## 🎯 How It Works
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Flask
+    participant Database
+    participant ScoreCalculator
+    
+    User->>Flask: Search flats
+    Flask->>Database: Query flats
+    Database-->>Flask: Return results
+    Flask->>ScoreCalculator: Calculate compatibility
+    ScoreCalculator-->>Flask: Return scores
+    Flask-->>User: Display ranked results
+```
+
+## 🛠️ Tech Stack
+
+| Layer      | Technology |
+|------------|------------|
+| Backend    | Flask, Python 3.8+ |
+| Database   | SQLite |
+| Frontend   | HTML5, CSS3, JavaScript |
+| Data Source| data.gov.sg API |
+| Maps       | Google Maps API |
+
+## 📊 Key Routes
+
+| Route | Description |
+|-------|-------------|
+| `/` | Home & search interface |
+| `/search` | Search results with pagination |
+| `/flat/<id>` | Detailed flat information |
+| `/preferences` | Set search preferences |
+| `/favorites` | View saved flats |
+| `/compare/<id1>/<id2>` | Compare two flats |
+
+## 🔧 Configuration
+
+Set preferences to get personalized compatibility scores:
+- Flat type (e.g., 3 ROOM, 4 ROOM)
+- Storey range
+- Floor area
+- Flat model
+- Price range
+
+## 📝 License
+
+MIT License - feel free to use this project for learning and development.
+
+---
+
+**Note:** This is a demo application for educational purposes. HDB data is fetched from Singapore's open data portal.
