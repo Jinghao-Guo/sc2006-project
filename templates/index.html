@@ -196,29 +196,38 @@
     <h3 class="text-center mb-4">Why Choose Our HDB Search?</h3>
     <div class="row g-4">
         <div class="col-md-4">
-            <div class="card h-100 text-center">
+            <div class="card h-100 text-center border-primary shadow-sm">
                 <div class="card-body">
-                    <i class="fas fa-database fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">Comprehensive Database</h5>
-                    <p class="card-text">Access thousands of HDB resale listings with up-to-date information.</p>
+                    <i class="fas fa-robot fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">AI-Powered Assistant</h5>
+                    <p class="card-text">Chat with our intelligent AI assistant that retrieves real-time data to answer your property questions and provide personalized recommendations.</p>
+                    <a href="{{ url_for('ai_chat') }}" class="btn btn-outline-primary btn-sm mt-2">
+                        <i class="fas fa-comments"></i> Try AI Chat
+                    </a>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card h-100 text-center">
+            <div class="card h-100 text-center border-success shadow-sm">
                 <div class="card-body">
-                    <i class="fas fa-balance-scale fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">Difference Visualization</h5>
-                    <p class="card-text">Try our visual comparison to explore changes side by side</p>
+                    <i class="fas fa-heart fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Smart Compatibility Scores</h5>
+                    <p class="card-text">Set your preferences and get personalized compatibility scores for each flat, helping you find properties that match your needs perfectly.</p>
+                    <a href="{{ url_for('preferences') }}" class="btn btn-outline-success btn-sm mt-2">
+                        <i class="fas fa-sliders-h"></i> Set Preferences
+                    </a>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card h-100 text-center">
+            <div class="card h-100 text-center border-info shadow-sm">
                 <div class="card-body">
-                    <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">Personalized scores</h5>
-                    <p class="card-text">Set your personal preferences and get a personalized score for each flat</p>
+                    <i class="fas fa-balance-scale fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Advanced Comparison Tools</h5>
+                    <p class="card-text">Compare properties side-by-side with detailed metrics, visual charts, and AI-powered insights to make informed decisions.</p>
+                    <a href="{{ url_for('comparison') }}" class="btn btn-outline-info btn-sm mt-2">
+                        <i class="fas fa-exchange-alt"></i> Compare Flats
+                    </a>
                 </div>
             </div>
         </div>
