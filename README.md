@@ -50,10 +50,7 @@ export GOOGLE_MAPS_API_KEY="your-google-maps-api-key-here"
 # Gemini API key (for AI Assistant)
 export GEMINI_API_KEY="your-gemini-api-key-here"
 
-# 4. Test the AI Assistant (optional)
-python test_ai_assistant.py
-
-# 5. Run the application
+# 4. Run the application
 python app.py
 ```
 
