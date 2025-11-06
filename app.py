@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from Database import database
 from Userpreferences import user_preferences
 from scoreCalculator import score_calculator
+from ai_assistant import get_ai_assistant
 import os
 
 app = Flask(__name__)
@@ -252,6 +253,67 @@ def compare_flats(flat_id1, flat_id2):
         flat2_breakdown=flat2_breakdown,
         has_preferences=user_preferences.has_preferences(),
     )
+
+
+@app.route("/ai_chat", methods=["GET", "POST"])
+def ai_chat():
+    """AI Assistant chat interface"""
+    return render_template("ai_chat.html", has_preferences=user_preferences.has_preferences())
+
+
+@app.route("/api/ai/chat", methods=["POST"])
+def api_ai_chat():
+    """API endpoint for AI chat"""
+    try:
+        data = request.get_json()
+        user_message = data.get("message", "").strip()
+        conversation_history = data.get("history", [])
+
+        if not user_message:
+            return jsonify({"error": "Message is required"}), 400
+
+        # Get AI assistant and generate response
+        assistant = get_ai_assistant()
+        response = assistant.chat(user_message, conversation_history)
+
+        return jsonify({"response": response, "success": True})
+
+    except ValueError as e:
+        return jsonify({"error": str(e), "success": False}), 400
+    except Exception as e:
+        return jsonify(
+            {"error": f"An error occurred: {str(e)}", "success": False}
+        ), 500
+
+
+@app.route("/api/ai/analyze_flat/<int:flat_id>", methods=["GET"])
+def api_analyze_flat(flat_id):
+    """API endpoint for AI flat analysis"""
+    try:
+        assistant = get_ai_assistant()
+        analysis = assistant.ask_about_flat(flat_id)
+        return jsonify({"analysis": analysis, "success": True})
+    except ValueError as e:
+        return jsonify({"error": str(e), "success": False}), 400
+    except Exception as e:
+        return jsonify(
+            {"error": f"An error occurred: {str(e)}", "success": False}
+        ), 500
+
+
+@app.route("/api/ai/compare/<int:flat_id1>/<int:flat_id2>", methods=["GET"])
+def api_compare_flats(flat_id1, flat_id2):
+    """API endpoint for AI flat comparison"""
+    try:
+        assistant = get_ai_assistant()
+        comparison = assistant.compare_flats(flat_id1, flat_id2)
+        return jsonify({"comparison": comparison, "success": True})
+    except ValueError as e:
+        return jsonify({"error": str(e), "success": False}), 400
+    except Exception as e:
+        return jsonify(
+            {"error": f"An error occurred: {str(e)}", "success": False}
+        ), 500
 
 
 if __name__ == "__main__":

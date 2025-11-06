@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}AI Assistant - HDB Flat Finder{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-robot"></i> AI Property Assistant
+                    </h4>
+                    <small>Ask me anything about HDB properties in Singapore</small>
+                </div>
+                
+                <div class="card-body" style="height: 500px; overflow-y: auto;" id="chatMessages">
+                    <div class="welcome-message text-center text-muted py-5">
+                        <i class="fas fa-comments fa-3x mb-3"></i>
+                        <h5>Welcome! I'm your HDB property assistant.</h5>
+                        <p>Ask me questions like:</p>
+                        <ul class="list-unstyled">
+                            <li>💰 "What are affordable 4-room flats in Tampines?"</li>
+                            <li>📍 "Show me properties in Bishan"</li>
+                            <li>📊 "What's the average price for 5-room flats?"</li>
+                            <li>🏠 "Compare properties in different areas"</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <form id="chatForm">
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="userMessage" 
+                                placeholder="Type your question here..."
+                                autocomplete="off"
+                            >
+                            <button class="btn btn-primary" type="submit" id="sendBtn">
+                                <i class="fas fa-paper-plane"></i> Send
+                            </button>
+                        </div>
+                    </form>
+                    <div class="text-muted small mt-2">
+                        <i class="fas fa-info-circle"></i> Powered by Gemini AI with real-time HDB data
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <button class="btn btn-outline-secondary btn-sm" id="clearChat">
+                    <i class="fas fa-trash"></i> Clear Chat
+                </button>
+                <button class="btn btn-outline-info btn-sm" id="exportChat">
+                    <i class="fas fa-download"></i> Export Chat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-message {
+        margin-bottom: 1rem;
+        animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message-user {
+        background-color: #007bff;
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem 1rem 0 1rem;
+        margin-left: 20%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .message-ai {
+        background-color: #f8f9fa;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem 1rem 1rem 0;
+        margin-right: 20%;
+        border-left: 3px solid #28a745;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .message-label {
+        font-size: 0.75rem;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .message-label i {
+        margin-right: 0.5rem;
+    }
+    
+    .typing-indicator {
+        display: inline-block;
+        margin-left: 0.5rem;
+    }
+    
+    .typing-indicator span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #007bff;
+        animation: typing 1.4s infinite;
+        margin: 0 2px;
+    }
+    
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+    @keyframes typing {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-10px); }
+    }
+    
+    #chatMessages::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    #chatMessages::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    #chatMessages::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+    
+    #chatMessages::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+</style>
+
+<script>
+    let conversationHistory = [];
+    
+    document.getElementById('chatForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const messageInput = document.getElementById('userMessage');
+        const message = messageInput.value.trim();
+        
+        if (!message) return;
+        
+        // Add user message to chat
+        addMessage(message, 'user');
+        conversationHistory.push(message);
+        
+        // Clear input
+        messageInput.value = '';
+        
+        // Show typing indicator
+        showTypingIndicator();
+        
+        // Disable send button
+        const sendBtn = document.getElementById('sendBtn');
+        sendBtn.disabled = true;
+        
+        try {
+            // Send to API
+            const response = await fetch('/api/ai/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    history: conversationHistory.slice(-10) // Keep last 10 messages for context
+                })
+            });
+            
+            const data = await response.json();
+            
+            // Remove typing indicator
+            removeTypingIndicator();
+            
+            if (data.success) {
+                addMessage(data.response, 'ai');
+                conversationHistory.push(data.response);
+            } else {
+                addMessage('Sorry, I encountered an error: ' + data.error, 'ai', true);
+            }
+            
+        } catch (error) {
+            removeTypingIndicator();
+            addMessage('Sorry, I could not connect to the server. Please check your GEMINI_API_KEY environment variable.', 'ai', true);
+            console.error('Error:', error);
+        } finally {
+            sendBtn.disabled = false;
+            messageInput.focus();
+        }
+    });
+    
+    function addMessage(text, sender, isError = false) {
+        const chatMessages = document.getElementById('chatMessages');
+        
+        // Remove welcome message if it exists
+        const welcomeMsg = chatMessages.querySelector('.welcome-message');
+        if (welcomeMsg) {
+            welcomeMsg.remove();
+        }
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message';
+        
+        const label = document.createElement('div');
+        label.className = 'message-label';
+        
+        if (sender === 'user') {
+            label.innerHTML = '<i class="fas fa-user"></i> You';
+            label.style.textAlign = 'right';
+            label.style.color = '#007bff';
+        } else {
+            label.innerHTML = '<i class="fas fa-robot"></i> AI Assistant';
+            label.style.color = '#28a745';
+        }
+        
+        const bubble = document.createElement('div');
+        bubble.className = sender === 'user' ? 'message-user' : 'message-ai';
+        
+        if (isError) {
+            bubble.style.borderLeft = '3px solid #dc3545';
+            bubble.style.backgroundColor = '#f8d7da';
+        }
+        
+        // Convert markdown-style formatting to HTML
+        let formattedText = text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+        
+        bubble.innerHTML = formattedText;
+        
+        messageDiv.appendChild(label);
+        messageDiv.appendChild(bubble);
+        chatMessages.appendChild(messageDiv);
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function showTypingIndicator() {
+        const chatMessages = document.getElementById('chatMessages');
+        const indicator = document.createElement('div');
+        indicator.id = 'typingIndicator';
+        indicator.className = 'chat-message';
+        indicator.innerHTML = `
+            <div class="message-label">
+                <i class="fas fa-robot"></i> AI Assistant
+            </div>
+            <div class="message-ai">
+                Thinking<span class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </div>
+        `;
+        chatMessages.appendChild(indicator);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function removeTypingIndicator() {
+        const indicator = document.getElementById('typingIndicator');
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+    
+    document.getElementById('clearChat').addEventListener('click', () => {
+        if (confirm('Are you sure you want to clear the chat history?')) {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = `
+                <div class="welcome-message text-center text-muted py-5">
+                    <i class="fas fa-comments fa-3x mb-3"></i>
+                    <h5>Welcome! I'm your HDB property assistant.</h5>
+                    <p>Ask me questions like:</p>
+                    <ul class="list-unstyled">
+                        <li>💰 "What are affordable 4-room flats in Tampines?"</li>
+                        <li>📍 "Show me properties in Bishan"</li>
+                        <li>📊 "What's the average price for 5-room flats?"</li>
+                        <li>🏠 "Compare properties in different areas"</li>
+                    </ul>
+                </div>
+            `;
+            conversationHistory = [];
+        }
+    });
+    
+    document.getElementById('exportChat').addEventListener('click', () => {
+        if (conversationHistory.length === 0) {
+            alert('No chat history to export.');
+            return;
+        }
+        
+        let exportText = 'HDB AI Assistant Chat Export\n';
+        exportText += '================================\n\n';
+        
+        for (let i = 0; i < conversationHistory.length; i++) {
+            const sender = i % 2 === 0 ? 'You' : 'AI Assistant';
+            exportText += `${sender}:\n${conversationHistory[i]}\n\n`;
+        }
+        
+        const blob = new Blob([exportText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chat_export_${new Date().toISOString().split('T')[0]}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+    
+    // Focus on input when page loads
+    document.getElementById('userMessage').focus();
+</script>
+{% endblock %}
