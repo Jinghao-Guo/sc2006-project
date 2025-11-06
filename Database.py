@@ -81,7 +81,7 @@ class Database:
         self.connection.commit()
         self.close()
 
-    def search_flats(self, query, town, flat_type, limit=100, offset=0):
+    def search_flats(self, query, town, flat_type, limit=None, offset=0):
         """Search for HDB flats with given filters, sorting, and pagination"""
         self.connect()
         sql_query = "SELECT * FROM hdb_flats WHERE 1=1"
@@ -99,8 +99,12 @@ class Database:
             sql_query += " AND flat_type LIKE ?"
             params.append(f"%{flat_type}%")
 
-        sql_query += f" ORDER BY resale_price DESC LIMIT ? OFFSET ?"
-        params.extend([limit, offset])
+        sql_query += " ORDER BY resale_price DESC"
+        
+        # Only add LIMIT and OFFSET if limit is specified
+        if limit is not None:
+            sql_query += " LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
 
         flats = self.connection.execute(sql_query, params).fetchall()
         self.close()
