@@ -156,6 +156,9 @@ MIT License - feel free to use this project for learning and development.
 
 **Note:** This is a demo application for educational purposes. HDB data is fetched from Singapore's open data portal.
 
+
+
+
 ```mermaid
 flowchart LR
   subgraph Client
