@@ -3,5 +3,5 @@ Jinja2
 requests
 numpy
 pandas
-sqlite3
 tqdm
+google-generativeai
