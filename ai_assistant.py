@@ -24,7 +24,7 @@ class AIAssistant:
 
         # Initialize the model
         # Supported models: "gemini-1.5-flash-latest", "gemini-1.5-pro-latest", "gemini-pro"
-        self.model_name = model_name or os.environ.get("GEMINI_MODEL", "gemini-1.5-flash-latest")
+        self.model_name = model_name or os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
         self.model = genai.GenerativeModel(self.model_name)
 
         # System prompt for the AI assistant
