@@ -20,8 +20,8 @@ graph LR
 ```
 
 - **Smart Search** - Filter by town, flat type, and keywords with pagination
-- **🤖 AI Assistant with RAG** - Chat with an intelligent assistant that retrieves data from the database and provides personalized insights using Google Gemini API
-- **Personalized Scoring** - AI-powered compatibility scores based on your preferences
+- **AI Assistant with RAG** - Chat with an intelligent assistant that retrieves data from the database and provides personalized insights using Google Gemini API
+- **Personalized Scoring** - Compatibility scores based on your preferences
 - **Favorites System** - Save and manage your preferred properties
 - **Side-by-Side Comparison** - Compare two flats with detailed metrics and AI analysis
 - **Interactive Maps** - Visualize locations with Google Maps integration
