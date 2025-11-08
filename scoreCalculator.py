@@ -10,11 +10,11 @@ class ScoreCalculator:
     def __init__(self):
         # Adjusted weights to reflect importance of each criterion
         self.weights = {
-            "flat_type": 0.25,      # Room count is very important
-            "price_range": 0.25,    # Budget is crucial
-            "floor_area_sqm": 0.20, # Size matters
-            "storey_range": 0.15,   # Floor preference is moderate
-            "flat_model": 0.15,     # Model is less critical
+            "flat_type": 0.25,  # Room count is very important
+            "price_range": 0.25,  # Budget is crucial
+            "floor_area_sqm": 0.20,  # Size matters
+            "storey_range": 0.15,  # Floor preference is moderate
+            "flat_model": 0.15,  # Model is less critical
         }
 
     def calculate_score(self, flat, preferences):
@@ -72,15 +72,15 @@ class ScoreCalculator:
         """Score flat type match with smooth scoring based on room count similarity"""
         if not flat_type or not preference:
             return 0
-        
+
         # Extract room counts for comparison
         flat_rooms = self._extract_room_count(flat_type)
         pref_rooms = self._extract_room_count(preference)
-        
+
         if flat_rooms is None or pref_rooms is None:
             # Fallback to exact match for non-standard types
             return 1.0 if flat_type.upper() == preference.upper() else 0.0
-        
+
         # Calculate score based on room count difference
         # Perfect match = 1.0, 1 room difference = 0.6, 2 rooms = 0.3, 3+ = 0.1
         room_diff = abs(flat_rooms - pref_rooms)
@@ -92,41 +92,41 @@ class ScoreCalculator:
             return 0.3
         else:
             return 0.1
-    
+
     def _extract_room_count(self, flat_type):
         """Extract room count from flat type string"""
         flat_type_upper = flat_type.upper().strip()
-        
+
         # Map flat types to room counts
         room_mapping = {
-            '1 ROOM': 1,
-            '2 ROOM': 2,
-            '3 ROOM': 3,
-            '4 ROOM': 4,
-            '5 ROOM': 5,
-            'EXECUTIVE': 6,  # Treat executive as 6-room equivalent
-            'MULTI-GENERATION': 6,
+            "1 ROOM": 1,
+            "2 ROOM": 2,
+            "3 ROOM": 3,
+            "4 ROOM": 4,
+            "5 ROOM": 5,
+            "EXECUTIVE": 6,  # Treat executive as 6-room equivalent
+            "MULTI-GENERATION": 6,
         }
-        
+
         return room_mapping.get(flat_type_upper)
 
     def _score_storey_range(self, storey_range, preference):
         """Score storey range match with smooth scoring based on floor proximity"""
         if not storey_range or not preference:
             return 0
-        
+
         # Extract middle floor number from range
         flat_mid_floor = self._extract_mid_floor(storey_range)
         pref_mid_floor = self._extract_mid_floor(preference)
-        
+
         if flat_mid_floor is None or pref_mid_floor is None:
             # Fallback to exact match
             return 1.0 if storey_range.upper() == preference.upper() else 0.0
-        
+
         # Calculate score based on floor difference
         # Use exponential decay for smooth scoring
         floor_diff = abs(flat_mid_floor - pref_mid_floor)
-        
+
         if floor_diff == 0:
             return 1.0
         elif floor_diff <= 3:
@@ -144,7 +144,7 @@ class ScoreCalculator:
         else:
             # Very far away
             return 0.05
-    
+
     def _extract_mid_floor(self, storey_range):
         """Extract middle floor number from storey range string"""
         try:
@@ -171,20 +171,20 @@ class ScoreCalculator:
         range_info = self._parse_area_preference(preference)
         if not range_info:
             return 0
-        
+
         min_range, max_range = range_info
         center = (min_range + max_range) / 2
         range_size = max_range - min_range
-        
+
         # Calculate distance from center of preferred range
         distance = abs(floor_area - center)
-        
+
         # Within range: full score
         if min_range <= floor_area <= max_range:
             # Slight preference for values closer to center even within range
             normalized_distance = distance / (range_size / 2)
             return 1.0 - (normalized_distance * 0.1)  # Max 10% reduction at edges
-        
+
         # Outside range: exponential decay based on distance
         # Use a smoother decay function
         if distance <= range_size:
@@ -201,7 +201,7 @@ class ScoreCalculator:
         else:
             # Very far: minimal score
             return max(0.05, 0.15 * (1 - min(distance / (range_size * 5), 1)))
-    
+
     def _parse_area_preference(self, preference):
         """Parse area preference string and return (min, max) tuple"""
         area_ranges = {
@@ -219,53 +219,55 @@ class ScoreCalculator:
         """Score flat model match with similarity scoring"""
         if not flat_model or not preference:
             return 0
-        
+
         flat_model_upper = flat_model.upper().strip()
         preference_upper = preference.upper().strip()
-        
+
         # Exact match
         if flat_model_upper == preference_upper:
             return 1.0
-        
+
         # Define model categories and their similarity
         model_categories = {
-            'premium': ['PREMIUM APARTMENT', 'DBSS', 'PREMIUM MAISONETTE'],
-            'improved': ['IMPROVED', 'IMPROVED-MAISONETTE', 'NEW GENERATION'],
-            'standard': ['STANDARD', 'MODEL A', 'MODEL A2', 'SIMPLIFIED'],
-            'special': ['MAISONETTE', 'APARTMENT', 'TERRACE', 'PREMIUM APARTMENT LOFT'],
+            "premium": ["PREMIUM APARTMENT", "DBSS", "PREMIUM MAISONETTE"],
+            "improved": ["IMPROVED", "IMPROVED-MAISONETTE", "NEW GENERATION"],
+            "standard": ["STANDARD", "MODEL A", "MODEL A2", "SIMPLIFIED"],
+            "special": ["MAISONETTE", "APARTMENT", "TERRACE", "PREMIUM APARTMENT LOFT"],
         }
-        
+
         # Find categories for both models
         flat_category = None
         pref_category = None
-        
+
         for category, models in model_categories.items():
             if any(model in flat_model_upper for model in models):
                 flat_category = category
             if any(model in preference_upper for model in models):
                 pref_category = category
-        
+
         # Same category: good match
         if flat_category and pref_category and flat_category == pref_category:
             return 0.75
-        
+
         # Different but known categories: partial match
         if flat_category and pref_category:
             # Premium and improved are somewhat similar
-            if (flat_category == 'premium' and pref_category == 'improved') or \
-               (flat_category == 'improved' and pref_category == 'premium'):
+            if (flat_category == "premium" and pref_category == "improved") or (
+                flat_category == "improved" and pref_category == "premium"
+            ):
                 return 0.5
             # Standard and improved are somewhat similar
-            elif (flat_category == 'standard' and pref_category == 'improved') or \
-                 (flat_category == 'improved' and pref_category == 'standard'):
+            elif (flat_category == "standard" and pref_category == "improved") or (
+                flat_category == "improved" and pref_category == "standard"
+            ):
                 return 0.4
             else:
                 return 0.2
-        
+
         # Partial string match as fallback
         if preference_upper in flat_model_upper or flat_model_upper in preference_upper:
             return 0.6
-        
+
         # No match
         return 0.1
 
@@ -283,18 +285,18 @@ class ScoreCalculator:
         range_info = self._parse_price_preference(preference)
         if not range_info:
             return 0
-        
+
         min_range, max_range = range_info
         center = (min_range + max_range) / 2
         range_size = max_range - min_range
-        
+
         # Within range: excellent score with slight preference for lower prices
         if min_range <= price <= max_range:
             # Normalize position within range (0 = min, 1 = max)
             position = (price - min_range) / range_size if range_size > 0 else 0
             # Slight preference for lower prices: 1.0 at min, 0.95 at max
             return 1.0 - (position * 0.05)
-        
+
         # Below range: still good (cheaper is usually better)
         if price < min_range:
             distance = min_range - price
@@ -302,13 +304,15 @@ class ScoreCalculator:
             if distance <= range_size * 0.5:
                 return 0.85 + 0.15 * (1 - distance / (range_size * 0.5))
             elif distance <= range_size:
-                return 0.65 + 0.20 * (1 - (distance - range_size * 0.5) / (range_size * 0.5))
+                return 0.65 + 0.20 * (
+                    1 - (distance - range_size * 0.5) / (range_size * 0.5)
+                )
             elif distance <= range_size * 2:
                 normalized_dist = (distance - range_size) / range_size
                 return 0.35 + 0.30 * (1 - normalized_dist)
             else:
                 return max(0.1, 0.35 * (1 - min(distance / (range_size * 4), 1)))
-        
+
         # Above range: worse (more expensive)
         # Less tolerance for higher prices
         distance = price - max_range
@@ -326,7 +330,7 @@ class ScoreCalculator:
         else:
             # Way over budget
             return max(0.01, 0.05 * (1 - min(distance / (range_size * 3), 1)))
-    
+
     def _parse_price_preference(self, preference):
         """Parse price preference string and return (min, max) tuple"""
         price_ranges = {
@@ -356,18 +360,18 @@ class ScoreCalculator:
             if pref_value:
                 score = self._calculate_criterion_score(criterion, flat, pref_value)
                 flat_value = flat.get(criterion, "N/A")
-                
+
                 breakdown[criterion] = {
                     "score": round(score * 100),
                     "weight": weight,
                     "weighted_score": round(score * weight * 100),
                     "preference": pref_value,
                     "actual": flat_value,
-                    "match_quality": self._get_match_quality(score)
+                    "match_quality": self._get_match_quality(score),
                 }
 
         return breakdown
-    
+
     def _get_match_quality(self, score):
         """Get qualitative description of match quality"""
         if score >= 0.9:

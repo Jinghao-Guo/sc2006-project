@@ -27,6 +27,23 @@ graph LR
 - **Interactive Maps** - Visualize locations with Google Maps integration
 - **AI Property Analysis** - Get detailed AI-powered analysis for any property
 
+## 📸 Screenshots
+
+### Home & Search Interface
+![Home Page](img/index.png)
+*Smart search interface with filters and personalized scoring*
+
+### AI Assistant Chat
+![AI Chat](img/ai_chat.png)
+*Intelligent AI assistant powered by Google Gemini with RAG capabilities*
+
+### Flat Comparison
+![Flat Comparison](img/flat_compare.png)
+*Side-by-side comparison with detailed metrics*
+
+![Comparison Charts](img/flat_compare_charts.png)
+*Visual comparison charts for better decision making*
+
 ## 🚀 Quick Start
 
 ### Prerequisites

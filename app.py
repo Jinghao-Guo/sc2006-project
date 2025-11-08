@@ -47,19 +47,20 @@ def search():
     
     # Pagination settings
     per_page = 20  # Show 20 results per page
-    
-    # Get ALL flats matching search criteria (no limit/offset yet)
-    all_flats = database.search_flats(query, town, flat_type)
+    offset = (page - 1) * per_page
     
     # Get total count for pagination
-    total_count = len(all_flats)
+    total_count = database.count_search_results(query, town, flat_type)
     total_pages = (total_count + per_page - 1) // per_page  # Ceiling division
+    
+    # Get flats for current page
+    flats = database.search_flats(query, town, flat_type, limit=per_page, offset=offset)
 
-    # Calculate scores for ALL flats based on user preferences
+    # Calculate scores for each flat based on user preferences
     preferences = user_preferences.get_preferences()
     flats_with_scores = []
 
-    for flat in all_flats:
+    for flat in flats:
         # Convert sqlite Row to dict for easier handling
         flat_dict = dict(flat)
         score = score_calculator.calculate_score(flat_dict, preferences)
@@ -69,15 +70,10 @@ def search():
     # Sort by score if preferences are set, otherwise keep original order (price desc)
     if user_preferences.has_preferences():
         flats_with_scores.sort(key=lambda x: x["compatibility_score"], reverse=True)
-    
-    # Apply pagination AFTER sorting
-    start_idx = (page - 1) * per_page
-    end_idx = start_idx + per_page
-    flats_page = flats_with_scores[start_idx:end_idx]
 
     return render_template(
         "search_results.html",
-        flats=flats_page,
+        flats=flats_with_scores,
         query=query,
         town=town,
         flat_type=flat_type,

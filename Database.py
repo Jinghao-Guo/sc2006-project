@@ -100,7 +100,7 @@ class Database:
             params.append(f"%{flat_type}%")
 
         sql_query += " ORDER BY resale_price DESC"
-        
+
         # Only add LIMIT and OFFSET if limit is specified
         if limit is not None:
             sql_query += " LIMIT ? OFFSET ?"
@@ -109,7 +109,7 @@ class Database:
         flats = self.connection.execute(sql_query, params).fetchall()
         self.close()
         return flats
-    
+
     def count_search_results(self, query, town, flat_type):
         """Count total number of flats matching the search criteria"""
         self.connect()
@@ -130,7 +130,7 @@ class Database:
 
         result = self.connection.execute(sql_query, params).fetchone()
         self.close()
-        return result['count'] if result else 0
+        return result["count"] if result else 0
 
     def query_id(self, id):
         """Query a flat by its ID"""
@@ -144,7 +144,7 @@ class Database:
     def clear_data(self):
         """Clear all data from the hdb_flats table"""
         self.connect()
-        
+
         # Check if hdb_flats table exists
         cursor = self.connection.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='hdb_flats'"
@@ -152,7 +152,7 @@ class Database:
         if cursor.fetchone() is None:
             self.close()
             return
-        
+
         self.connection.execute("DELETE FROM hdb_flats")
         self.connection.commit()
         self.close()
