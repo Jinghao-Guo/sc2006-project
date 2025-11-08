@@ -58,108 +58,149 @@ Always mention specific locations (town, street) when discussing properties.
     def retrieve_context(self, query):
         """
         Retrieve relevant data from the database based on the query
-        This is the RAG (Retrieval) part - uses LLM to extract search parameters
+        This is the RAG (Retrieval) part - uses LLM to generate SQL queries with retry logic
         """
         context = []
-
-        # Use LLM to extract search parameters from the query
-        extraction_prompt = """You are a data extraction assistant. Extract search parameters from the user's query about HDB flats in Singapore.
+        max_attempts = 5
+        
+        # Database schema information for LLM
+        schema_info = """
+Database Schema:
+Table: hdb_flats
+Columns:
+- id (INTEGER PRIMARY KEY): Unique identifier for each flat
+- town (TEXT): Location/town in Singapore (e.g., 'TAMPINES', 'BEDOK', 'BISHAN')
+- flat_type (TEXT): Type of flat (e.g., '2 ROOM', '3 ROOM', '4 ROOM', '5 ROOM', 'EXECUTIVE')
+- block (TEXT): Block number
+- street_name (TEXT): Street name
+- storey_range (TEXT): Storey range (e.g., '01 TO 03', '04 TO 06')
+- floor_area_sqm (REAL): Floor area in square meters
+- flat_model (TEXT): Flat model (e.g., 'Improved', 'Model A', 'Premium Apartment')
+- lease_commence_date (INTEGER): Year the lease started
+- resale_price (REAL): Resale price in Singapore Dollars
 
 Available towns: ANG MO KIO, BEDOK, BISHAN, BUKIT BATOK, BUKIT MERAH, BUKIT PANJANG, BUKIT TIMAH, CENTRAL AREA, CHOA CHU KANG, CLEMENTI, GEYLANG, HOUGANG, JURONG EAST, JURONG WEST, KALLANG/WHAMPOA, MARINE PARADE, PASIR RIS, PUNGGOL, QUEENSTOWN, SEMBAWANG, SENGKANG, SERANGOON, TAMPINES, TOA PAYOH, WOODLANDS, YISHUN
 
 Available flat types: 2 ROOM, 3 ROOM, 4 ROOM, 5 ROOM, EXECUTIVE
+"""
 
-User query: {query}
+        # Initial SQL generation prompt
+        sql_generation_prompt = f"""{schema_info}
 
-Please extract and return ONLY in this exact format (one per line, leave blank if not mentioned):
-TOWN: [town name or empty]
-FLAT_TYPE: [flat type or empty]
+User Query: {query}
 
-Example 1:
-User query: "Show me 4 room flats in Tampines"
-TOWN: TAMPINES
-FLAT_TYPE: 4 ROOM
+Generate a SQL SELECT query to retrieve relevant HDB flat information based on the user's query.
+Requirements:
+1. Use ONLY SELECT statements (no INSERT, UPDATE, DELETE, DROP, etc.)
+2. Limit results to 10 records using LIMIT 10
+3. Order by resale_price DESC for better results
+4. Use LIKE with wildcards (%) for text matching (case-insensitive matching is automatic in SQLite)
+5. Return ONLY the SQL query without any explanation or markdown formatting
 
-Example 2:
-User query: "What's the average price of HDB flats?"
-TOWN: 
-FLAT_TYPE: 
+Example queries:
+- For "Show me 4 room flats in Tampines": SELECT * FROM hdb_flats WHERE flat_type LIKE '%4 ROOM%' AND town LIKE '%TAMPINES%' ORDER BY resale_price DESC LIMIT 10
+- For "Cheapest flats in Bedok": SELECT * FROM hdb_flats WHERE town LIKE '%BEDOK%' ORDER BY resale_price ASC LIMIT 10
+- For "Average price of executive flats": SELECT * FROM hdb_flats WHERE flat_type LIKE '%EXECUTIVE%' ORDER BY resale_price DESC LIMIT 10
 
-Now extract from the user query above:"""
+Now generate the SQL query:"""
 
-        try:
-            # Use LLM to extract parameters
-            extraction_response = self.model.generate_content(
-                extraction_prompt.format(query=query)
-            )
-            extraction_text = extraction_response.text.strip()
+        # Try to generate and execute SQL query with retry logic
+        for attempt in range(1, max_attempts + 1):
+            try:
+                # Generate SQL query using LLM
+                sql_response = self.model.generate_content(sql_generation_prompt)
+                sql_query = sql_response.text.strip()
+                
+                # Clean up the SQL query (remove markdown formatting if present)
+                if sql_query.startswith("```sql"):
+                    sql_query = sql_query.replace("```sql", "").replace("```", "").strip()
+                elif sql_query.startswith("```"):
+                    sql_query = sql_query.replace("```", "").strip()
+                
+                # Remove any trailing semicolons
+                sql_query = sql_query.rstrip(";").strip()
+                
+                print(f"Attempt {attempt}: Generated SQL: {sql_query}")
+                
+                # Execute the SQL query
+                database.connect()
+                cursor = database.connection.execute(sql_query)
+                flats = cursor.fetchall()
+                database.close()
+                
+                # Successfully executed the query
+                if flats:
+                    context.append(f"Found {len(flats)} relevant properties:\n")
+                    for i, flat in enumerate(flats, 1):
+                        flat_dict = dict(flat)
+                        context.append(
+                            f"\n{i}. Property in {flat_dict['town']}"
+                            f"\n   - Type: {flat_dict['flat_type']}"
+                            f"\n   - Address: Block {flat_dict['block']}, {flat_dict['street_name']}"
+                            f"\n   - Storey: {flat_dict['storey_range']}"
+                            f"\n   - Floor Area: {flat_dict['floor_area_sqm']} sqm"
+                            f"\n   - Model: {flat_dict['flat_model']}"
+                            f"\n   - Lease Started: {flat_dict['lease_commence_date']}"
+                            f"\n   - Resale Price: SGD ${flat_dict['resale_price']:,.2f}"
+                        )
 
-            # Parse the LLM response
-            town_filter = None
-            flat_type_filter = None
-
-            for line in extraction_text.split("\n"):
-                line = line.strip()
-                if line.startswith("TOWN:"):
-                    town_value = line.replace("TOWN:", "").strip()
-                    if town_value and town_value.upper() != "EMPTY":
-                        town_filter = town_value.upper()
-                elif line.startswith("FLAT_TYPE:"):
-                    flat_type_value = line.replace("FLAT_TYPE:", "").strip()
-                    if flat_type_value and flat_type_value.upper() != "EMPTY":
-                        flat_type_filter = flat_type_value.upper()
-
-        except Exception as e:
-            # Fallback to empty filters if LLM extraction fails
-            print(f"LLM extraction error: {str(e)}")
-            town_filter = None
-            flat_type_filter = None
-
-        # Search the database
-        try:
-            # Get relevant flats based on filters
-            flats = database.search_flats(
-                query="",
-                town=town_filter or "",
-                flat_type=flat_type_filter or "",
-                limit=10,
-                offset=0,
-            )
-
-            if flats:
-                context.append(f"Found {len(flats)} relevant properties:\n")
-                for i, flat in enumerate(flats, 1):
-                    flat_dict = dict(flat)
+                    # Add statistics if available
+                    prices = [dict(flat)["resale_price"] for flat in flats]
+                    if prices:
+                        avg_price = sum(prices) / len(prices)
+                        min_price = min(prices)
+                        max_price = max(prices)
+                        context.append(
+                            f"\n\nPrice Statistics:"
+                            f"\n- Average: SGD ${avg_price:,.2f}"
+                            f"\n- Range: SGD ${min_price:,.2f} - SGD ${max_price:,.2f}"
+                        )
+                else:
                     context.append(
-                        f"\n{i}. Property in {flat_dict['town']}"
-                        f"\n   - Type: {flat_dict['flat_type']}"
-                        f"\n   - Address: Block {flat_dict['block']}, {flat_dict['street_name']}"
-                        f"\n   - Storey: {flat_dict['storey_range']}"
-                        f"\n   - Floor Area: {flat_dict['floor_area_sqm']} sqm"
-                        f"\n   - Model: {flat_dict['flat_model']}"
-                        f"\n   - Lease Started: {flat_dict['lease_commence_date']}"
-                        f"\n   - Resale Price: SGD ${flat_dict['resale_price']:,.2f}"
+                        "No specific properties found matching the exact criteria. "
+                        "I'll provide general information based on your query."
                     )
+                
+                # Success - break out of retry loop
+                break
+                
+            except Exception as e:
+                error_message = str(e)
+                print(f"Attempt {attempt} failed with error: {error_message}")
+                
+                # Close database connection if it's still open
+                try:
+                    database.close()
+                except:
+                    pass
+                
+                if attempt < max_attempts:
+                    # Prepare retry prompt with error information
+                    sql_generation_prompt = f"""{schema_info}
 
-                # Add statistics if available
-                prices = [dict(flat)["resale_price"] for flat in flats]
-                if prices:
-                    avg_price = sum(prices) / len(prices)
-                    min_price = min(prices)
-                    max_price = max(prices)
+User Query: {query}
+
+Previous SQL query attempt failed with error: {error_message}
+
+Previous SQL query that failed: {sql_query if 'sql_query' in locals() else 'N/A'}
+
+Please generate a corrected SQL SELECT query that:
+1. Fixes the error mentioned above
+2. Uses ONLY SELECT statements (no INSERT, UPDATE, DELETE, DROP, etc.)
+3. Limits results to 10 records using LIMIT 10
+4. Orders by resale_price DESC for better results
+5. Uses proper SQLite syntax
+6. Uses LIKE with wildcards (%) for text matching
+7. Returns ONLY the SQL query without any explanation or markdown formatting
+
+Generate the corrected SQL query:"""
+                else:
+                    # Max attempts reached
                     context.append(
-                        f"\n\nPrice Statistics:"
-                        f"\n- Average: SGD ${avg_price:,.2f}"
-                        f"\n- Range: SGD ${min_price:,.2f} - SGD ${max_price:,.2f}"
+                        f"Error: Unable to retrieve data after {max_attempts} attempts. "
+                        f"Last error: {error_message}. "
+                        "I'll provide general information based on your query."
                     )
-            else:
-                context.append(
-                    "No specific properties found matching the exact criteria. "
-                    "I'll provide general information based on your query."
-                )
-
-        except Exception as e:
-            context.append(f"Error retrieving data: {str(e)}")
 
         return "\n".join(context)
 
