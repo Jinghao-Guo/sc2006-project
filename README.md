@@ -164,10 +164,6 @@ The AI Assistant uses **RAG (Retrieval-Augmented Generation)** to provide intell
 - "Compare prices between Bishan and Ang Mo Kio"
 - "Tell me about properties under $500,000"
 - "Which area is best for families?"
-
-📖 For detailed AI Assistant documentation, see [AI_ASSISTANT_README.md](AI_ASSISTANT_README.md)  
-🚀 For quick start guide, see [QUICKSTART.md](QUICKSTART.md)
-
 ## 📝 License
 
 MIT License - feel free to use this project for learning and development.
