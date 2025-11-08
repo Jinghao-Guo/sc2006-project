@@ -1,4 +1,4 @@
-# 🏠 HDB Resale Flat Finder
+# 🏠 HDB Finder
 
 > A smart Flask web application for searching and comparing HDB resale flats in Singapore with personalized compatibility scoring.
 
