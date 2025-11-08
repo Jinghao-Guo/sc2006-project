@@ -20,12 +20,29 @@ graph LR
 ```
 
 - **Smart Search** - Filter by town, flat type, and keywords with pagination
-- **AI Assistant with RAG** - Chat with an intelligent assistant that retrieves data from the database and provides personalized insights using Google Gemini API
-- **Personalized Scoring** - Compatibility scores based on your preferences
+- **🤖 AI Assistant with RAG** - Chat with an intelligent assistant that retrieves data from the database and provides personalized insights using Google Gemini API
+- **Personalized Scoring** - AI-powered compatibility scores based on your preferences
 - **Favorites System** - Save and manage your preferred properties
 - **Side-by-Side Comparison** - Compare two flats with detailed metrics and AI analysis
 - **Interactive Maps** - Visualize locations with Google Maps integration
 - **AI Property Analysis** - Get detailed AI-powered analysis for any property
+
+## 📸 Screenshots
+
+### Home & Search Interface
+![Home Page](img/index.png)
+*Smart search interface with filters and personalized scoring*
+
+### AI Assistant Chat
+![AI Chat](img/ai_chat.png)
+*Intelligent AI assistant powered by Google Gemini with RAG capabilities*
+
+### Flat Comparison
+![Flat Comparison](img/flat_compare.png)
+*Side-by-side comparison with detailed metrics*
+
+![Comparison Charts](img/flat_compare_charts.png)
+*Visual comparison charts for better decision making*
 
 ## 🚀 Quick Start
 
@@ -50,7 +67,10 @@ export GOOGLE_MAPS_API_KEY="your-google-maps-api-key-here"
 # Gemini API key (for AI Assistant)
 export GEMINI_API_KEY="your-gemini-api-key-here"
 
-# 4. Run the application
+# 4. Test the AI Assistant (optional)
+python test_ai_assistant.py
+
+# 5. Run the application
 python app.py
 ```
 
@@ -144,6 +164,9 @@ The AI Assistant uses **RAG (Retrieval-Augmented Generation)** to provide intell
 - "Compare prices between Bishan and Ang Mo Kio"
 - "Tell me about properties under $500,000"
 - "Which area is best for families?"
+
+📖 For detailed AI Assistant documentation, see [AI_ASSISTANT_README.md](AI_ASSISTANT_README.md)  
+🚀 For quick start guide, see [QUICKSTART.md](QUICKSTART.md)
 
 ## 📝 License
 

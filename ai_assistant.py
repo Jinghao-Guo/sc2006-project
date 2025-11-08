@@ -24,7 +24,9 @@ class AIAssistant:
 
         # Initialize the model
         # Supported models: "gemini-1.5-flash-latest", "gemini-1.5-pro-latest", "gemini-pro"
-        self.model_name = model_name or os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+        self.model_name = model_name or os.environ.get(
+            "GEMINI_MODEL", "gemini-2.5-flash"
+        )
         self.model = genai.GenerativeModel(self.model_name)
 
         # System prompt for the AI assistant
@@ -56,68 +58,72 @@ Always mention specific locations (town, street) when discussing properties.
     def retrieve_context(self, query):
         """
         Retrieve relevant data from the database based on the query
-        This is the RAG (Retrieval) part
+        This is the RAG (Retrieval) part - uses LLM to extract search parameters
         """
         context = []
 
-        # Extract potential search terms from the query
-        query_lower = query.lower()
+        # Use LLM to extract search parameters from the query
+        extraction_prompt = """You are a data extraction assistant. Extract search parameters from the user's query about HDB flats in Singapore.
 
-        # Detect if user is asking about specific areas/towns
-        towns = [
-            "ANG MO KIO",
-            "BEDOK",
-            "BISHAN",
-            "BUKIT BATOK",
-            "BUKIT MERAH",
-            "BUKIT PANJANG",
-            "BUKIT TIMAH",
-            "CENTRAL AREA",
-            "CHOA CHU KANG",
-            "CLEMENTI",
-            "GEYLANG",
-            "HOUGANG",
-            "JURONG EAST",
-            "JURONG WEST",
-            "KALLANG/WHAMPOA",
-            "MARINE PARADE",
-            "PASIR RIS",
-            "PUNGGOL",
-            "QUEENSTOWN",
-            "SEMBAWANG",
-            "SENGKANG",
-            "SERANGOON",
-            "TAMPINES",
-            "TOA PAYOH",
-            "WOODLANDS",
-            "YISHUN",
-        ]
+Available towns: ANG MO KIO, BEDOK, BISHAN, BUKIT BATOK, BUKIT MERAH, BUKIT PANJANG, BUKIT TIMAH, CENTRAL AREA, CHOA CHU KANG, CLEMENTI, GEYLANG, HOUGANG, JURONG EAST, JURONG WEST, KALLANG/WHAMPOA, MARINE PARADE, PASIR RIS, PUNGGOL, QUEENSTOWN, SEMBAWANG, SENGKANG, SERANGOON, TAMPINES, TOA PAYOH, WOODLANDS, YISHUN
 
-        town_filter = None
-        for town in towns:
-            if town.lower() in query_lower:
-                town_filter = town
-                break
+Available flat types: 2 ROOM, 3 ROOM, 4 ROOM, 5 ROOM, EXECUTIVE
 
-        # Detect flat type
-        flat_type_filter = None
-        if "2 room" in query_lower or "2-room" in query_lower:
-            flat_type_filter = "2 ROOM"
-        elif "3 room" in query_lower or "3-room" in query_lower:
-            flat_type_filter = "3 ROOM"
-        elif "4 room" in query_lower or "4-room" in query_lower:
-            flat_type_filter = "4 ROOM"
-        elif "5 room" in query_lower or "5-room" in query_lower:
-            flat_type_filter = "5 ROOM"
-        elif "executive" in query_lower:
-            flat_type_filter = "EXECUTIVE"
+User query: {query}
+
+Please extract and return ONLY in this exact format (one per line, leave blank if not mentioned):
+TOWN: [town name or empty]
+FLAT_TYPE: [flat type or empty]
+
+Example 1:
+User query: "Show me 4 room flats in Tampines"
+TOWN: TAMPINES
+FLAT_TYPE: 4 ROOM
+
+Example 2:
+User query: "What's the average price of HDB flats?"
+TOWN: 
+FLAT_TYPE: 
+
+Now extract from the user query above:"""
+
+        try:
+            # Use LLM to extract parameters
+            extraction_response = self.model.generate_content(
+                extraction_prompt.format(query=query)
+            )
+            extraction_text = extraction_response.text.strip()
+
+            # Parse the LLM response
+            town_filter = None
+            flat_type_filter = None
+
+            for line in extraction_text.split("\n"):
+                line = line.strip()
+                if line.startswith("TOWN:"):
+                    town_value = line.replace("TOWN:", "").strip()
+                    if town_value and town_value.upper() != "EMPTY":
+                        town_filter = town_value.upper()
+                elif line.startswith("FLAT_TYPE:"):
+                    flat_type_value = line.replace("FLAT_TYPE:", "").strip()
+                    if flat_type_value and flat_type_value.upper() != "EMPTY":
+                        flat_type_filter = flat_type_value.upper()
+
+        except Exception as e:
+            # Fallback to empty filters if LLM extraction fails
+            print(f"LLM extraction error: {str(e)}")
+            town_filter = None
+            flat_type_filter = None
 
         # Search the database
         try:
             # Get relevant flats based on filters
             flats = database.search_flats(
-                query="", town=town_filter or "", flat_type=flat_type_filter or "", 
-                limit=10, offset=0
+                query="",
+                town=town_filter or "",
+                flat_type=flat_type_filter or "",
+                limit=10,
+                offset=0,
             )
 
             if flats:
@@ -160,11 +166,11 @@ Always mention specific locations (town, street) when discussing properties.
     def chat(self, user_query, conversation_history=None):
         """
         Main chat function with RAG
-        
+
         Args:
             user_query: The user's question
             conversation_history: Optional list of previous messages
-            
+
         Returns:
             AI response as a string
         """
@@ -204,10 +210,10 @@ Please provide a helpful response based on the database context above and your k
     def ask_about_flat(self, flat_id):
         """
         Get AI insights about a specific flat
-        
+
         Args:
             flat_id: The database ID of the flat
-            
+
         Returns:
             AI analysis of the flat
         """
@@ -254,11 +260,11 @@ Be specific and data-driven in your analysis.
     def compare_flats(self, flat_id1, flat_id2):
         """
         Compare two flats and provide AI insights
-        
+
         Args:
             flat_id1: First flat ID
             flat_id2: Second flat ID
-            
+
         Returns:
             Comparative analysis
         """

@@ -44,15 +44,15 @@ def search():
     town = request.args.get("town", "").strip()
     flat_type = request.args.get("flat_type", "").strip()
     page = request.args.get("page", 1, type=int)
-    
+
     # Pagination settings
     per_page = 20  # Show 20 results per page
     offset = (page - 1) * per_page
-    
+
     # Get total count for pagination
     total_count = database.count_search_results(query, town, flat_type)
     total_pages = (total_count + per_page - 1) // per_page  # Ceiling division
-    
+
     # Get flats for current page
     flats = database.search_flats(query, town, flat_type, limit=per_page, offset=offset)
 
@@ -258,7 +258,9 @@ def compare_flats(flat_id1, flat_id2):
 @app.route("/ai_chat", methods=["GET", "POST"])
 def ai_chat():
     """AI Assistant chat interface"""
-    return render_template("ai_chat.html", has_preferences=user_preferences.has_preferences())
+    return render_template(
+        "ai_chat.html", has_preferences=user_preferences.has_preferences()
+    )
 
 
 @app.route("/api/ai/chat", methods=["POST"])
@@ -281,9 +283,7 @@ def api_ai_chat():
     except ValueError as e:
         return jsonify({"error": str(e), "success": False}), 400
     except Exception as e:
-        return jsonify(
-            {"error": f"An error occurred: {str(e)}", "success": False}
-        ), 500
+        return jsonify({"error": f"An error occurred: {str(e)}", "success": False}), 500
 
 
 @app.route("/api/ai/analyze_flat/<int:flat_id>", methods=["GET"])
@@ -296,9 +296,7 @@ def api_analyze_flat(flat_id):
     except ValueError as e:
         return jsonify({"error": str(e), "success": False}), 400
     except Exception as e:
-        return jsonify(
-            {"error": f"An error occurred: {str(e)}", "success": False}
-        ), 500
+        return jsonify({"error": f"An error occurred: {str(e)}", "success": False}), 500
 
 
 @app.route("/api/ai/compare/<int:flat_id1>/<int:flat_id2>", methods=["GET"])
@@ -311,9 +309,7 @@ def api_compare_flats(flat_id1, flat_id2):
     except ValueError as e:
         return jsonify({"error": str(e), "success": False}), 400
     except Exception as e:
-        return jsonify(
-            {"error": f"An error occurred: {str(e)}", "success": False}
-        ), 500
+        return jsonify({"error": f"An error occurred: {str(e)}", "success": False}), 500
 
 
 if __name__ == "__main__":
